@@ -1,0 +1,31 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Artwork {
+  id          String   @id @default(uuid())
+  originalId  String   @unique
+  title       String
+  artist      String
+  year        String?
+  medium      String?
+  category    String?
+  height      String?
+  width       String?
+  depth       String?
+  notes       String?
+  appraisalValue String? // Placeholder for strict financial data
+  purchasePrice  String? // Placeholder for strict financial data
+  imagePath   String?
+  description String?  // Optional detailed description
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
