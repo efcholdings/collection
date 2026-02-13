@@ -266,7 +266,10 @@ export default function GalleryManager({ artworks, totalCount, currentPage = 1, 
                     <ArtworkDetailPanel
                         artwork={selectedArtwork}
                         onClose={() => setSelectedArtwork(null)}
-                        onEdit={() => setEditingArtwork(selectedArtwork)}
+                        onEdit={() => {
+                            setEditingArtwork(selectedArtwork);
+                            setSelectedArtwork(null);
+                        }}
                         isAdmin={isAdmin}
                     />
                 )}
