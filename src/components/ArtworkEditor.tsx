@@ -113,7 +113,7 @@ export default function ArtworkEditor({ artwork, onClose }: ArtworkEditorProps) 
         width: '45%', // MATCHED DETAIL PANEL
         height: '100%',
         borderLeft: '1px solid #F5F5F5',
-        paddingTop: '60px',
+        paddingTop: '40px',
         paddingLeft: '40px', // MATCHED DETAIL PANEL SPACING
     } : {
         width: '100%',

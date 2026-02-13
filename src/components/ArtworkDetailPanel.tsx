@@ -102,7 +102,7 @@ export default function ArtworkDetailPanel({ artwork, onClose, onEdit, isAdmin =
         display: 'flex',
         flexDirection: 'column',
         borderLeft: '1px solid #F3F4F6',
-        paddingTop: '60px',
+        paddingTop: '40px',
         // Added padding left to create whitespace separation from image
         paddingLeft: '40px',
     } : {
