@@ -14,72 +14,107 @@ export default function ArtworkRow({ artwork, onSelect, onEdit, isAdmin = false 
     const validImage = getValidImageUrl(artwork.imagePath);
 
     return (
-        <div
-            className="group relative flex items-center gap-6 p-3 bg-white border border-neutral-100 rounded-lg hover:bg-[#FAFAFA] hover:border-neutral-200 transition-all shadow-sm mb-3"
+        <tr
+            className="group border-b border-gray-50 hover:bg-neutral-50 transition-colors"
         >
-            {/* Thumbnail - 80px Fixed Width */}
-            <div
-                onClick={() => onSelect(artwork)}
-                className="relative h-20 w-20 bg-neutral-100 overflow-hidden flex-shrink-0 rounded-md cursor-pointer shadow-sm group-hover:shadow-md transition-shadow"
-                style={{ width: '80px', height: '80px' }}
-            >
-                {validImage ? (
-                    <Image
-                        src={validImage}
-                        alt={artwork.title}
-                        width={80}
-                        height={80}
-                        className="object-contain w-full h-full"
-                        style={{ maxWidth: '100%', maxHeight: '100%' }}
-                        unoptimized
-                    />
-                ) : (
-                    <div className="w-full h-full flex flex-col items-center justify-center bg-gray-50 border-[0.5px] border-gray-200 text-neutral-400">
-                        <span className="text-[9px] uppercase font-medium tracking-widest leading-none">No</span>
-                        <span className="text-[9px] uppercase font-medium tracking-widest leading-none">Image</span>
+            {/* Column 1: Artwork (Thumb + Title + Artist) - 25% */}
+            <td className="p-4 py-12 align-middle" style={{ width: '25%', overflow: 'hidden' }}>
+                <div className="flex items-center gap-8 overflow-hidden h-full">
+                    {/* Thumbnail - 80px Fixed Width */}
+                    <div
+                        onClick={() => onSelect(artwork)}
+                        className="relative h-20 w-20 bg-neutral-100 overflow-hidden flex-shrink-0 cursor-pointer"
+                        style={{ width: '80px', height: '80px', minWidth: '80px' }}
+                    >
+                        {validImage ? (
+                            <Image
+                                src={validImage}
+                                alt={artwork.title || 'Artwork'}
+                                width={80}
+                                height={80}
+                                className="object-contain w-full h-full"
+                                style={{ maxWidth: '100%', maxHeight: '100%' }}
+                                unoptimized
+                            />
+                        ) : (
+                            <div className="w-full h-full flex items-center justify-center bg-gray-50 text-neutral-300">
+                                <span className="text-[9px] uppercase tracking-wider">No Img</span>
+                            </div>
+                        )}
                     </div>
-                )}
-            </div>
 
-            {/* ID - Sans Serif */}
-            <div className="w-24 text-xs font-sans font-medium text-neutral-400 select-all flex-shrink-0">
-                {artwork.originalId}
-            </div>
-
-            {/* Title - Serif */}
-            <div
-                onClick={() => onSelect(artwork)}
-                className="flex-1 font-serif font-medium text-lg text-neutral-900 truncate pr-4 cursor-pointer hover:text-neutral-600 transition-colors"
-            >
-                {artwork.title}
-                <div className="text-xs font-sans text-neutral-400 mt-1 md:hidden">
-                    {artwork.artist}
+                    {/* Text Data - Relaxed Leading */}
+                    <div className="flex flex-col justify-center overflow-hidden gap-4 flex-1 h-full min-w-0">
+                        <span
+                            onClick={() => onSelect(artwork)}
+                            className="font-serif text-[15px] text-black truncate cursor-pointer hover:text-neutral-500 transition-colors leading-loose block"
+                            title={artwork.title}
+                        >
+                            {artwork.title}
+                        </span>
+                        <span className="font-serif text-[13px] text-neutral-500 italic truncate leading-loose block">
+                            {artwork.artist}
+                        </span>
+                        {/* ID */}
+                        <span className="text-[10px] font-sans text-neutral-300 select-all tracking-wide truncate block mt-0.5 leading-relaxed">
+                            {artwork.originalId}
+                        </span>
+                    </div>
                 </div>
-            </div>
+            </td>
 
-            {/* Category - Sans Serif (Desktop) */}
-            <div className="hidden md:block w-48 text-xs font-sans text-neutral-500 bg-neutral-50 px-2 py-1 rounded-full text-center truncate flex-shrink-0">
-                {artwork.category}
-            </div>
+            {/* Column 2: Medium - 20% */}
+            <td className="p-4 py-12 align-middle" style={{ width: '20%', maxWidth: 0, overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>
+                <span className="text-[13px] font-sans font-light text-neutral-800 leading-loose block truncate" title={artwork.medium || ''}>
+                    {artwork.medium || <span className="text-neutral-300">—</span>}
+                </span>
+            </td>
 
-            {/* Artist - Serif (Desktop) */}
-            <div className="hidden md:block w-64 text-sm font-serif text-neutral-600 truncate flex-shrink-0 text-right pr-4">
-                {artwork.artist}
-            </div>
+            {/* Column 3: Dimensions - 17% */}
+            <td className="p-4 py-12 align-middle" style={{ width: '17%', maxWidth: 0, overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>
+                <span className="text-[13px] font-sans font-light text-neutral-800 leading-loose block truncate" title={formatDimensions(artwork)}>
+                    {formatDimensions(artwork) || <span className="text-neutral-300">—</span>}
+                </span>
+            </td>
 
-            {/* Edit Hover Action */}
-            {isAdmin && onEdit && (
-                <button
-                    onClick={(e) => {
-                        e.stopPropagation();
-                        onEdit(artwork);
-                    }}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 p-2 bg-white rounded-full shadow-md text-indigo-600 md:opacity-0 md:group-hover:opacity-100 opacity-100 transition-all duration-200 hover:bg-indigo-50 transform md:translate-x-2 md:group-hover:translate-x-0 z-20 border border-neutral-100"
-                    title="Edit Artwork"
-                >
-                    <PencilSquareIcon className="w-5 h-5" />
-                </button>
-            )}
-        </div>
+            {/* Column 4: Category - 17% */}
+            <td className="p-4 py-12 align-middle text-center" style={{ width: '17%', maxWidth: 0, overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>
+                <div className="inline-block max-w-full truncate">
+                    <span className="text-[10px] font-sans text-neutral-500 uppercase tracking-[0.1em] bg-neutral-50 px-3 py-1.5 rounded-sm mx-auto tracking-wide block truncate border border-neutral-100">
+                        {artwork.category || <span className="text-neutral-300">–</span>}
+                    </span>
+                </div>
+            </td>
+
+            {/* Column 5: Financials (Admin) - 21% */}
+            {isAdmin ? (
+                <td className="pl-4 pr-0 py-12 align-middle text-right" style={{ width: '21%', maxWidth: 0, overflow: 'hidden' }}>
+                    <div className="flex flex-col items-end justify-center gap-2 w-full">
+                        {/* Appraisal */}
+                        <div className="flex items-center gap-4 w-full justify-end">
+                            <span className="text-[9px] text-neutral-300 uppercase tracking-[0.2em] flex-shrink-0">Est</span>
+                            <span className="text-[13px] font-sans font-light text-black min-w-[70px] text-right truncate tabular-nums">
+                                {artwork.appraisalValue || <span className="text-neutral-300">–</span>}
+                            </span>
+                        </div>
+                        {/* Purchase */}
+                        <div className="flex items-center gap-4 w-full justify-end">
+                            <span className="text-[9px] text-neutral-300 uppercase tracking-[0.2em] flex-shrink-0">Paid</span>
+                            <span className="text-[13px] font-sans font-light text-black min-w-[70px] text-right truncate tabular-nums">
+                                {artwork.purchasePrice || <span className="text-neutral-300">–</span>}
+                            </span>
+                        </div>
+                    </div>
+                </td>
+            ) : <td style={{ width: '21%' }} />}
+        </tr>
     );
+}
+
+function formatDimensions(artwork: Artwork): string {
+    const parts = [];
+    if (artwork.height) parts.push(`H: ${artwork.height}`);
+    if (artwork.width) parts.push(`W: ${artwork.width}`);
+    if (artwork.depth) parts.push(`D: ${artwork.depth}`);
+    return parts.length > 0 ? parts.join(' × ') : '—';
 }

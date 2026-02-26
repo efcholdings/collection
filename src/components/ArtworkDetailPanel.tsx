@@ -19,6 +19,18 @@ export default function ArtworkDetailPanel({ artwork, onClose, onEdit, isAdmin =
     const [isDesktop, setIsDesktop] = useState(false);
     const [isLightboxOpen, setIsLightboxOpen] = useState(false);
 
+    // Multi-image state
+    const images = artwork ? [
+        artwork.imagePath,
+        (artwork as any).imagePath2,
+        (artwork as any).imagePath3,
+        (artwork as any).imagePath4,
+        (artwork as any).imagePath5
+    ].filter(img => img && getValidImageUrl(img)) as string[] : [];
+
+    const [activeImageIndex, setActiveImageIndex] = useState(0);
+    const [showNoMoreImages, setShowNoMoreImages] = useState(false);
+
     // Caption Auto-Hide State
     const [showCaption, setShowCaption] = useState(true);
     const mouseTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -46,6 +58,19 @@ export default function ArtworkDetailPanel({ artwork, onClose, onEdit, isAdmin =
 
         const handleKeyDown = (e: KeyboardEvent) => {
             if (e.key === 'Escape') setIsLightboxOpen(false);
+            if (e.key === 'ArrowRight' && images.length > 1) {
+                if (activeImageIndex === images.length - 1) {
+                    setShowNoMoreImages(true);
+                    setTimeout(() => setShowNoMoreImages(false), 2000);
+                } else {
+                    setActiveImageIndex((prev) => prev + 1);
+                }
+            }
+            if (e.key === 'ArrowLeft' && images.length > 1) {
+                if (activeImageIndex > 0) {
+                    setActiveImageIndex((prev) => prev - 1);
+                }
+            }
         };
 
         const handleMouseMove = () => {
@@ -136,25 +161,53 @@ export default function ArtworkDetailPanel({ artwork, onClose, onEdit, isAdmin =
 
                         {/* LEFT PANEL: Visuals */}
                         <div
-                            className="relative bg-neutral-50 flex items-center justify-center cursor-zoom-in group"
+                            className="relative bg-neutral-50 flex flex-col items-center justify-center p-8 border-r border-neutral-100"
                             style={leftPanelStyle}
-                            onClick={() => setIsLightboxOpen(true)}
                         >
-                            {getValidImageUrl(artwork.imagePath) ? (
-                                <div className="relative w-full h-full">
-                                    <Image
-                                        src={getValidImageUrl(artwork.imagePath)!}
-                                        alt={artwork.title}
-                                        fill
-                                        className="object-contain transition-transform duration-500 group-hover:scale-[1.02]"
-                                        sizes="(max-width: 768px) 95vw, 60vw"
-                                        priority
-                                    />
-                                </div>
-                            ) : (
-                                <div className="flex flex-col items-center justify-center text-neutral-400">
-                                    <span className="font-serif italic text-xl">No Image Available</span>
-                                    <span className="text-[10px] uppercase tracking-widest mt-2">Upload in Edit Mode</span>
+                            <div
+                                className="relative w-full flex-1 flex items-center justify-center cursor-zoom-in group mb-16"
+                                onClick={() => setIsLightboxOpen(true)}
+                            >
+                                {images.length > 0 ? (
+                                    <div className="relative w-full h-full">
+                                        <Image
+                                            src={getValidImageUrl(images[activeImageIndex])!}
+                                            alt={artwork.title}
+                                            fill
+                                            className="object-contain transition-transform duration-500 group-hover:scale-[1.02]"
+                                            sizes="(max-width: 768px) 95vw, 60vw"
+                                            priority
+                                        />
+                                    </div>
+                                ) : (
+                                    <div className="flex flex-col items-center justify-center text-neutral-400">
+                                        <span className="font-serif italic text-xl">No Image Available</span>
+                                        <span className="text-[10px] uppercase tracking-widest mt-2">Upload in Edit Mode</span>
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Thumbnails */}
+                            {images.length > 1 && (
+                                <div className="absolute bottom-[72px] left-0 w-full flex justify-center gap-3 px-8 z-10">
+                                    {images.map((img, idx) => (
+                                        <button
+                                            key={idx}
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                setActiveImageIndex(idx);
+                                            }}
+                                            className={`relative w-16 h-16 shrink-0 border transition-all ${idx === activeImageIndex ? 'border-neutral-900' : 'border-transparent opacity-60 hover:opacity-100'}`}
+                                        >
+                                            <Image
+                                                src={getValidImageUrl(img)!}
+                                                alt={`Thumbnail ${idx + 1}`}
+                                                fill
+                                                className="object-cover"
+                                                unoptimized
+                                            />
+                                        </button>
+                                    ))}
                                 </div>
                             )}
                         </div>
@@ -214,7 +267,7 @@ export default function ArtworkDetailPanel({ artwork, onClose, onEdit, isAdmin =
                                                     value={formatDimensions(artwork)}
                                                 />
                                                 <DetailItem label="Category" value={artwork.category} />
-                                                <DetailItem label="Location" value={artwork.location} />
+                                                <DetailItem label="Location" value={(artwork as any).location} />
                                             </div>
                                         </Section>
                                     </div>
@@ -271,11 +324,11 @@ export default function ArtworkDetailPanel({ artwork, onClose, onEdit, isAdmin =
                                                         {artwork.purchasePrice || '—'}
                                                     </div>
                                                 </div>
-                                                {artwork.insuranceValue && (
+                                                {(artwork as any).insuranceValue && (
                                                     <div className="col-span-2 pt-4 border-t border-gray-200/50 flex flex-col gap-1">
                                                         <SmallLabel>Insurance Value</SmallLabel>
                                                         <div className="font-serif text-base text-neutral-900 blur-[4px] hover:blur-none transition-all duration-300 cursor-help select-none">
-                                                            {artwork.insuranceValue}
+                                                            {(artwork as any).insuranceValue}
                                                         </div>
                                                     </div>
                                                 )}
@@ -322,7 +375,7 @@ export default function ArtworkDetailPanel({ artwork, onClose, onEdit, isAdmin =
             )}
 
             {/* LIGHTBOX OVERLAY */}
-            {isLightboxOpen && getValidImageUrl(artwork.imagePath) && createPortal(
+            {isLightboxOpen && images.length > 0 && createPortal(
                 <div
                     className="fixed inset-0 flex items-center justify-center cursor-default animate-in fade-in duration-300"
                     style={{ zIndex: 99999, backgroundColor: '#000000' }}
@@ -339,16 +392,52 @@ export default function ArtworkDetailPanel({ artwork, onClose, onEdit, isAdmin =
                         }}
                     >
                         <XMarkIcon
-                            className="w-8 h-8 text-white group-hover:opacity-80 transition-opacity duration-300 stroke-[1.5]"
-                            style={{ color: 'white' }}
+                            className="w-8 h-8 text-white/50 group-hover:text-white transition-colors duration-300 stroke-[1.5]"
                         />
                         <span
-                            className="text-[9px] uppercase tracking-[0.4em] text-white group-hover:opacity-80 transition-opacity duration-300 font-medium"
-                            style={{ color: 'white' }}
+                            className={`font-sans text-[9px] uppercase tracking-[0.4em] text-gray-400 group-hover:text-white transition-colors duration-300 ${showCaption ? 'opacity-100' : 'opacity-0'}`}
                         >
                             Close
                         </span>
                     </button>
+
+                    {/* Nav mapping */}
+                    {images.length > 1 && (
+                        <>
+                            <button
+                                className="absolute left-6 md:left-12 top-1/2 -translate-y-1/2 z-[100000] p-4 group text-white/50 hover:text-white transition-colors"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    if (activeImageIndex > 0) {
+                                        setActiveImageIndex((prev) => prev - 1);
+                                    }
+                                }}
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-10 h-10 md:w-16 md:h-16">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+                                </svg>
+                            </button>
+                            <button
+                                className="absolute right-6 md:right-12 top-1/2 -translate-y-1/2 z-[100000] p-4 group flex flex-col items-center gap-2 text-white/50 hover:text-white transition-colors"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    if (activeImageIndex === images.length - 1) {
+                                        setShowNoMoreImages(true);
+                                        setTimeout(() => setShowNoMoreImages(false), 2000);
+                                    } else {
+                                        setActiveImageIndex((prev) => prev + 1);
+                                    }
+                                }}
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-10 h-10 md:w-16 md:h-16">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+                                </svg>
+                                <span className={`absolute top-full mt-2 font-sans text-[9px] uppercase tracking-[0.4em] text-gray-400 whitespace-nowrap transition-opacity duration-300 ${showNoMoreImages ? 'opacity-100' : 'opacity-0'}`}>
+                                    No More Images
+                                </span>
+                            </button>
+                        </>
+                    )}
 
                     <div
                         className="relative flex items-center justify-center pointer-events-none w-full h-full"
@@ -356,7 +445,7 @@ export default function ArtworkDetailPanel({ artwork, onClose, onEdit, isAdmin =
                         onClick={(e) => e.stopPropagation()}
                     >
                         <Image
-                            src={getValidImageUrl(artwork.imagePath)!}
+                            src={getValidImageUrl(images[activeImageIndex])!}
                             alt={artwork.title}
                             fill
                             className="object-contain"

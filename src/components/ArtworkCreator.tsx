@@ -11,7 +11,16 @@ import { getValidImageUrl } from '@/utils/imageUtils';
 export default function ArtworkCreator({ onClose }: { onClose: () => void }) {
     const router = useRouter();
     const [isSaving, setIsSaving] = useState(false);
-    const [previewImage, setPreviewImage] = useState('');
+    const [images, setImages] = useState<string[]>(['', '', '', '', '']);
+    const [activeImageIndex, setActiveImageIndex] = useState(0);
+
+    const updateImage = (index: number, url: string) => {
+        const newImages = [...images];
+        newImages[index] = url;
+        setImages(newImages);
+    };
+
+    const hasInvalidImage = images.some(img => img && !getValidImageUrl(img));
 
     const handleSave = async (formData: FormData) => {
         setIsSaving(true);
@@ -171,7 +180,7 @@ export default function ArtworkCreator({ onClose }: { onClose: () => void }) {
                         {/* Action Bar (Sticky Bottom) */}
                         <div className="p-6 border-t border-neutral-100 flex justify-center bg-white z-10 shrink-0">
                             <button
-                                disabled={isSaving || (!!previewImage && !getValidImageUrl(previewImage))}
+                                disabled={isSaving || hasInvalidImage}
                                 type="submit"
                                 className="bg-neutral-900 text-white px-12 py-3 text-[10px] font-bold uppercase tracking-[0.2em] hover:bg-black transition-colors shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
                             >
@@ -182,33 +191,57 @@ export default function ArtworkCreator({ onClose }: { onClose: () => void }) {
 
                     {/* RIGHT COLUMN: Image Visual (40%) -> 2 cols */}
                     <div className="md:col-span-2 bg-neutral-50 flex flex-col items-center justify-center p-8 border-l border-neutral-100 relative shrink-0 h-[300px] md:h-auto">
+                        <input type="hidden" name="imagePath" value={images[0]} />
+                        <input type="hidden" name="imagePath2" value={images[1]} />
+                        <input type="hidden" name="imagePath3" value={images[2]} />
+                        <input type="hidden" name="imagePath4" value={images[3]} />
+                        <input type="hidden" name="imagePath5" value={images[4]} />
+
                         <div className="relative w-full h-full max-h-[60vh] shadow-xl bg-white p-4 flex items-center justify-center">
-                            {previewImage && getValidImageUrl(previewImage) ? (
+                            {images[activeImageIndex] && getValidImageUrl(images[activeImageIndex]) ? (
                                 <Image
-                                    src={getValidImageUrl(previewImage)!}
+                                    src={getValidImageUrl(images[activeImageIndex])!}
                                     alt="Preview"
                                     fill
                                     className="object-contain p-2"
                                     unoptimized
                                 />
                             ) : (
-                                <span className="text-neutral-300 font-serif italic text-lg">No Visual Reference</span>
+                                <span className="text-neutral-300 font-serif italic text-lg text-center font-sans uppercase tracking-widest text-[9px] text-gray-400">No Visual</span>
                             )}
                         </div>
 
+                        {/* Thumbnails row */}
+                        <div className="flex gap-2 mt-4 overflow-x-auto pb-2 w-full justify-center">
+                            {images.map((img, idx) => (
+                                <button
+                                    key={idx}
+                                    type="button"
+                                    onClick={() => setActiveImageIndex(idx)}
+                                    className={`relative w-16 h-16 shrink-0 border transition-colors ${idx === activeImageIndex ? 'border-neutral-900 border' : 'border-transparent hover:border-neutral-300'}`}
+                                >
+                                    {img && getValidImageUrl(img) ? (
+                                        <Image src={getValidImageUrl(img)!} alt={`Thumb ${idx + 1}`} fill className="object-cover" unoptimized />
+                                    ) : (
+                                        <div className="w-full h-full bg-neutral-100 flex items-center justify-center"></div>
+                                    )}
+                                </button>
+                            ))}
+                        </div>
+
                         {/* URL Input below image */}
-                        <div className="mt-8 w-full max-w-sm hidden md:block">
-                            <label className="block text-[10px] uppercase font-sans text-neutral-400 mb-2 text-center tracking-wider">Source Image URL</label>
+                        <div className="mt-4 w-full max-w-sm hidden md:block">
                             <AutoResizeTextarea
-                                name="imagePath"
-                                onChange={(e: any) => setPreviewImage(e.target.value)}
-                                className={`w-full text-center font-sans text-[10px] py-2 border-b outline-none bg-transparent resize-none overflow-hidden ${previewImage && !getValidImageUrl(previewImage)
+                                name={`imagePath_display_${activeImageIndex}`}
+                                value={images[activeImageIndex]}
+                                onChange={(e: any) => updateImage(activeImageIndex, e.target.value)}
+                                className={`w-full text-center font-sans text-[9px] uppercase tracking-[0.4em] text-gray-400 py-2 border-b outline-none bg-transparent resize-none overflow-hidden ${images[activeImageIndex] && !getValidImageUrl(images[activeImageIndex])
                                     ? 'border-red-300 text-red-500 focus:border-red-500'
-                                    : 'border-neutral-200 text-neutral-500 focus:border-neutral-900'
+                                    : 'border-neutral-200 focus:border-neutral-900'
                                     }`}
-                                placeholder="https://..."
+                                placeholder={`SOURCE IMAGE URL`}
                             />
-                            {previewImage && !getValidImageUrl(previewImage) && (
+                            {images[activeImageIndex] && !getValidImageUrl(images[activeImageIndex]) && (
                                 <p className="text-[10px] text-red-500 mt-2 text-center font-bold uppercase tracking-widest">
                                     Unsupported File Format (.jpg, .png only)
                                 </p>
@@ -218,15 +251,16 @@ export default function ArtworkCreator({ onClose }: { onClose: () => void }) {
                         {/* Mobile Only URL Input */}
                         <div className="md:hidden w-full mt-4">
                             <input
-                                name="imagePath_mobile"
-                                onChange={(e) => setPreviewImage(e.target.value)}
-                                className={`w-full text-center font-sans text-[10px] py-1 border-b outline-none bg-transparent ${previewImage && !getValidImageUrl(previewImage)
+                                name={`imagePath_mobile_${activeImageIndex}`}
+                                value={images[activeImageIndex]}
+                                onChange={(e) => updateImage(activeImageIndex, e.target.value)}
+                                className={`w-full text-center font-sans text-[10px] py-1 border-b outline-none bg-transparent ${images[activeImageIndex] && !getValidImageUrl(images[activeImageIndex])
                                     ? 'border-red-300 text-red-500'
                                     : 'border-neutral-200 text-neutral-500'
                                     }`}
-                                placeholder="Edit Image URL..."
+                                placeholder={`Edit Image URL (${activeImageIndex + 1}/5)...`}
                             />
-                            {previewImage && !getValidImageUrl(previewImage) && (
+                            {images[activeImageIndex] && !getValidImageUrl(images[activeImageIndex]) && (
                                 <p className="text-[10px] text-red-500 mt-1 text-center font-bold uppercase tracking-widest">
                                     Unsupported File Format
                                 </p>

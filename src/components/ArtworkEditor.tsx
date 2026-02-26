@@ -17,8 +17,23 @@ export default function ArtworkEditor({ artwork, onClose }: ArtworkEditorProps) 
     const router = useRouter();
     const [isSaving, setIsSaving] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
-    const [previewImage, setPreviewImage] = useState(getValidImageUrl(artwork.imagePath) || '');
+    const [images, setImages] = useState<string[]>([
+        getValidImageUrl(artwork.imagePath) || '',
+        getValidImageUrl(artwork.imagePath2) || '',
+        getValidImageUrl(artwork.imagePath3) || '',
+        getValidImageUrl(artwork.imagePath4) || '',
+        getValidImageUrl(artwork.imagePath5) || ''
+    ]);
+    const [activeImageIndex, setActiveImageIndex] = useState(0);
     const [mounted, setMounted] = useState(false);
+
+    const updateImage = (index: number, url: string) => {
+        const newImages = [...images];
+        newImages[index] = url;
+        setImages(newImages);
+    };
+
+    const hasInvalidImage = images.some(img => img && !getValidImageUrl(img));
     const [isDesktop, setIsDesktop] = useState(false);
 
     useEffect(() => {
@@ -38,7 +53,14 @@ export default function ArtworkEditor({ artwork, onClose }: ArtworkEditorProps) 
 
     // Reset state when artwork changes
     useEffect(() => {
-        setPreviewImage(getValidImageUrl(artwork.imagePath) || '');
+        setImages([
+            getValidImageUrl(artwork.imagePath) || '',
+            getValidImageUrl(artwork.imagePath2) || '',
+            getValidImageUrl(artwork.imagePath3) || '',
+            getValidImageUrl(artwork.imagePath4) || '',
+            getValidImageUrl(artwork.imagePath5) || ''
+        ]);
+        setActiveImageIndex(0);
     }, [artwork]);
 
     const handleSave = async (formData: FormData) => {
@@ -147,14 +169,14 @@ export default function ArtworkEditor({ artwork, onClose }: ArtworkEditorProps) 
 
                 {/* LEFT PANEL: Visuals & Image Input */}
                 <div
-                    className="relative flex flex-col items-center justify-center"
+                    className="relative flex flex-col items-center justify-center bg-neutral-50"
                     style={leftPanelStyle}
                 >
-                    <div className="relative w-full h-full flex items-center justify-center p-8 pb-20">
-                        {previewImage ? (
+                    <div className="relative w-full h-full max-h-[60vh] flex items-center justify-center p-8 pb-32">
+                        {images[activeImageIndex] && getValidImageUrl(images[activeImageIndex]) ? (
                             <div className="relative w-full h-full">
                                 <Image
-                                    src={previewImage}
+                                    src={getValidImageUrl(images[activeImageIndex])!}
                                     alt="Preview"
                                     fill
                                     className="object-contain"
@@ -162,24 +184,47 @@ export default function ArtworkEditor({ artwork, onClose }: ArtworkEditorProps) 
                                 />
                             </div>
                         ) : (
-                            <span className="text-neutral-300 font-serif italic text-lg">No Visual Reference</span>
+                            <span className="text-neutral-300 font-serif italic text-lg text-center font-sans uppercase tracking-widest text-[9px] text-gray-400">No Visual</span>
                         )}
                     </div>
 
                     {/* Image URL Input - Bottom Overlay (Source Image URL) */}
-                    <div className="absolute bottom-0 left-0 w-full p-6 bg-neutral-50/90 border-t border-neutral-100 backdrop-blur-sm">
-                        <label className="block text-[9px] uppercase font-sans text-gray-300 mb-2 text-left tracking-[0.4em]">Source Image URL</label>
-                        <AutoResizeTextarea
-                            name="imagePath"
-                            defaultValue={artwork.imagePath || ''}
-                            onChange={(e: any) => setPreviewImage(e.target.value)}
-                            className={`w-full text-left font-sans text-[11px] py-1 pb-2 border-b outline-none bg-transparent overflow-hidden ${previewImage && !getValidImageUrl(previewImage)
-                                ? 'border-red-300 text-red-500'
-                                : 'border-neutral-200 text-gray-400 focus:border-black'
-                                }`}
-                            placeholder="https://..."
-                            minRows={1}
-                        />
+                    <div className="absolute bottom-0 left-0 w-full p-4 bg-neutral-50 border-t border-neutral-100 backdrop-blur-sm z-10 flex flex-col items-center">
+
+                        {/* Thumbnails row */}
+                        <div className="flex gap-2 mb-3 overflow-x-auto w-full justify-center">
+                            {images.map((img, idx) => (
+                                <button
+                                    key={idx}
+                                    type="button"
+                                    onClick={(e) => {
+                                        e.preventDefault();
+                                        setActiveImageIndex(idx);
+                                    }}
+                                    className={`relative w-16 h-16 shrink-0 border transition-colors ${idx === activeImageIndex ? 'border-neutral-900 border' : 'border-transparent hover:border-neutral-300'}`}
+                                >
+                                    {img && getValidImageUrl(img) ? (
+                                        <Image src={getValidImageUrl(img)!} alt={`Thumb ${idx + 1}`} fill className="object-cover" unoptimized />
+                                    ) : (
+                                        <div className="w-full h-full bg-neutral-100 flex items-center justify-center"></div>
+                                    )}
+                                </button>
+                            ))}
+                        </div>
+
+                        <div className="w-full mt-2">
+                            <AutoResizeTextarea
+                                name={`imagePath_display_${activeImageIndex}`}
+                                value={images[activeImageIndex]}
+                                onChange={(e: any) => updateImage(activeImageIndex, e.target.value)}
+                                className={`w-full text-center font-sans text-[9px] uppercase tracking-[0.4em] text-gray-400 py-1 pb-1 border-b outline-none bg-transparent overflow-hidden ${images[activeImageIndex] && !getValidImageUrl(images[activeImageIndex])
+                                    ? 'border-red-300 text-red-500'
+                                    : 'border-neutral-200 focus:border-black'
+                                    }`}
+                                placeholder={`SOURCE IMAGE URL`}
+                                minRows={1}
+                            />
+                        </div>
                     </div>
                 </div>
 
@@ -190,7 +235,11 @@ export default function ArtworkEditor({ artwork, onClose }: ArtworkEditorProps) 
                     style={rightPanelStyle}
                 >
                     {/* Hidden Input to capture Image URL from Left Panel */}
-                    <input type="hidden" name="imagePath" value={previewImage} />
+                    <input type="hidden" name="imagePath" value={images[0]} />
+                    <input type="hidden" name="imagePath2" value={images[1]} />
+                    <input type="hidden" name="imagePath3" value={images[2]} />
+                    <input type="hidden" name="imagePath4" value={images[3]} />
+                    <input type="hidden" name="imagePath5" value={images[4]} />
 
 
                     {/* Header: Title */}
@@ -255,7 +304,7 @@ export default function ArtworkEditor({ artwork, onClose }: ArtworkEditorProps) 
                                     <AutoResizeTextarea name="category" defaultValue={artwork.category || ''} className={inputBaseClass} minRows={1} />
                                 </InputGroup>
                                 <InputGroup label="Location">
-                                    <AutoResizeTextarea name="location" defaultValue={artwork.location || ''} className={inputBaseClass} minRows={1} />
+                                    <AutoResizeTextarea name="location" defaultValue={(artwork as any).location || ''} className={inputBaseClass} minRows={1} />
                                 </InputGroup>
                             </div>
                         </div>
@@ -298,7 +347,7 @@ export default function ArtworkEditor({ artwork, onClose }: ArtworkEditorProps) 
                             </div>
                             <div className="pt-6">
                                 <InputGroup label="Insurance Value">
-                                    <input name="insuranceValue" defaultValue={artwork.insuranceValue || ''} className={inputBaseClass} />
+                                    <input name="insuranceValue" defaultValue={(artwork as any).insuranceValue || ''} className={inputBaseClass} />
                                 </InputGroup>
                             </div>
                         </div>
@@ -342,7 +391,7 @@ export default function ArtworkEditor({ artwork, onClose }: ArtworkEditorProps) 
 
                             <button
                                 type="submit"
-                                disabled={isSaving}
+                                disabled={isSaving || hasInvalidImage}
                                 className="text-[10px] tracking-[0.3em] font-sans text-gray-500 hover:text-black transition-colors uppercase disabled:opacity-50"
                             >
                                 {isSaving ? 'Saving...' : 'Save Changes'}

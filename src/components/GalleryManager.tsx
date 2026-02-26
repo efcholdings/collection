@@ -39,6 +39,16 @@ export default function GalleryManager({ artworks, totalCount, currentPage = 1, 
         console.log('GalleryManager isAdmin prop:', isAdmin);
     }, [isAdmin]);
 
+    // Sync selectedArtwork with refreshed data
+    useEffect(() => {
+        if (selectedArtwork) {
+            const updated = artworks.find(a => a.id === selectedArtwork.id);
+            if (updated && updated !== selectedArtwork) {
+                setSelectedArtwork(updated);
+            }
+        }
+    }, [artworks, selectedArtwork]);
+
     // Search State
     const [searchResults, setSearchResults] = useState<{ data: Artwork[], total: number, page: number } | null>(null);
     const [isSearching, setIsSearching] = useState(false);
@@ -180,27 +190,48 @@ export default function GalleryManager({ artworks, totalCount, currentPage = 1, 
 
                     <div className="w-full transition-all duration-300">
                         {/* Content Grid/List */}
-                        <div style={viewMode === 'grid' ? {
-                            display: 'grid',
-                            gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
-                            gap: '24px',
-                            width: '100%'
-                        } : {
-                            width: '100%',
-                            display: 'flex',
-                            flexDirection: 'column',
-                            gap: '12px'
-                        }}>
-                            {displayArtworks.map(art => (
-                                viewMode === 'list' ? (
-                                    <ArtworkRow
-                                        key={art.id}
-                                        artwork={art}
-                                        onSelect={setSelectedArtwork}
-                                        onEdit={setEditingArtwork}
-                                        isAdmin={isAdmin}
-                                    />
-                                ) : (
+                        {viewMode === 'list' ? (
+                            <div className="w-full overflow-x-auto">
+                                <table className="w-full min-w-[1000px] table-fixed border-collapse">
+                                    <colgroup>
+                                        <col style={{ width: '25%' }} />
+                                        <col style={{ width: '20%' }} />
+                                        <col style={{ width: '17%' }} />
+                                        <col style={{ width: '17%' }} />
+                                        {isAdmin && <col style={{ width: '21%' }} />}
+                                    </colgroup>
+                                    <thead>
+                                        <tr className="border-b border-gray-100">
+                                            <th className="text-left pt-4 pb-1 px-4 text-[9px] uppercase tracking-[0.5em] text-gray-400 font-sans font-light align-bottom">Artwork</th>
+                                            <th className="text-left pt-4 pb-1 px-4 text-[9px] uppercase tracking-[0.5em] text-gray-400 font-sans font-light align-bottom">Medium</th>
+                                            <th className="text-left pt-4 pb-1 px-4 text-[9px] uppercase tracking-[0.5em] text-gray-400 font-sans font-light align-bottom">Dimensions</th>
+                                            <th className="text-center pt-4 pb-1 px-4 text-[9px] uppercase tracking-[0.5em] text-gray-400 font-sans font-light align-bottom">Category</th>
+                                            {isAdmin && (
+                                                <th className="text-right pt-4 pb-1 pl-4 pr-0 text-[9px] uppercase tracking-[0.5em] text-gray-400 font-sans font-light align-bottom">Financials</th>
+                                            )}
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {displayArtworks.map(art => (
+                                            <ArtworkRow
+                                                key={art.id}
+                                                artwork={art}
+                                                onSelect={setSelectedArtwork}
+                                                onEdit={setEditingArtwork}
+                                                isAdmin={isAdmin}
+                                            />
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        ) : (
+                            <div style={{
+                                display: 'grid',
+                                gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
+                                gap: '24px',
+                                width: '100%'
+                            }}>
+                                {displayArtworks.map(art => (
                                     <div
                                         key={art.id}
                                         onClick={() => setSelectedArtwork(art)}
@@ -246,20 +277,23 @@ export default function GalleryManager({ artworks, totalCount, currentPage = 1, 
                                             <p className="text-xs text-neutral-500 truncate block">{art.artist}</p>
                                         </div>
                                     </div>
-                                )
-                            ))}
-                        </div>
-
-                        {/* Pagination */}
-                        <PaginationControls
-                            currentPage={displayPage}
-                            totalCount={displayTotal}
-                            itemsPerPage={50}
-                            onPageChange={searchResults ? onSearchPageChange : undefined}
-                            isServerSide={!searchResults} // If not searching, use server-side routing
-                        />
+                                ))}
+                            </div>
+                        )}
                     </div>
+
                 </main>
+
+                {/* Fixed Footer Pagination */}
+                <div className="flex-shrink-0 bg-white z-10">
+                    <PaginationControls
+                        currentPage={displayPage}
+                        totalCount={displayTotal}
+                        itemsPerPage={50}
+                        onPageChange={searchResults ? onSearchPageChange : undefined}
+                        isServerSide={!searchResults} // If not searching, use server-side routing
+                    />
+                </div>
 
                 {/* Split View Panel (Persistent) */}
                 {selectedArtwork && (
@@ -268,7 +302,7 @@ export default function GalleryManager({ artworks, totalCount, currentPage = 1, 
                         onClose={() => setSelectedArtwork(null)}
                         onEdit={() => {
                             setEditingArtwork(selectedArtwork);
-                            setSelectedArtwork(null);
+                            // setSelectedArtwork(null); // Keep detail view open underneath
                         }}
                         isAdmin={isAdmin}
                     />
@@ -285,7 +319,7 @@ export default function GalleryManager({ artworks, totalCount, currentPage = 1, 
                         artwork={editingArtwork}
                         onClose={() => {
                             setEditingArtwork(null);
-                            setSelectedArtwork(null);
+                            // setSelectedArtwork(null); // Return to detail view
                         }}
                     />
                 )}
@@ -297,8 +331,8 @@ export default function GalleryManager({ artworks, totalCount, currentPage = 1, 
                         onClose={() => setIsReportOpen(false)}
                     />
                 )}
-            </div>
-        </div>
+            </div >
+        </div >
     );
 }
 
@@ -321,3 +355,4 @@ function HoverButton({ children, onClick, isActive = false }: { children: React.
         </button>
     );
 }
+

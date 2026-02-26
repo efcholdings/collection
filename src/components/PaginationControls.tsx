@@ -41,30 +41,33 @@ export default function PaginationControls({
     };
 
     return (
-        <div className="flex items-center justify-center mt-12 mb-8 w-full">
-            <nav className="isolate flex flex-nowrap items-center space-x-4 p-2 bg-white rounded-full shadow-sm border border-neutral-100 whitespace-nowrap" aria-label="Pagination">
-                <button
-                    onClick={() => handlePageChange(currentPage - 1)}
-                    disabled={currentPage === 1}
-                    className="p-2 rounded-full text-neutral-400 hover:text-neutral-900 hover:bg-neutral-50 disabled:opacity-30 disabled:hover:bg-transparent transition-all"
-                >
-                    <span className="sr-only">Previous</span>
-                    <ChevronLeftIcon className="h-5 w-5" aria-hidden="true" />
-                </button>
+        <div className="flex items-center justify-center py-10 w-full border-t border-gray-50 bg-white gap-12">
+            {/* Previous Button */}
+            <button
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={currentPage === 1}
+                className="group flex items-center gap-3 text-gray-400 hover:text-black disabled:opacity-20 disabled:hover:text-gray-400 disabled:cursor-default cursor-pointer transition-colors"
+                aria-label="Previous Page"
+            >
+                <ChevronLeftIcon className="h-4 w-4 stroke-[1.5]" strokeWidth={1.5} />
+                <span className="text-[10px] uppercase tracking-[0.3em] font-sans">Previous</span>
+            </button>
 
-                <div className="text-sm font-sans font-medium text-neutral-600 px-4 select-none">
-                    <span className="text-neutral-400">Page</span> {currentPage} <span className="text-neutral-300">/</span> {totalPages}
-                </div>
+            {/* Page Counter */}
+            <div className="text-[10px] uppercase tracking-[0.3em] font-sans text-gray-400 select-none">
+                Page {currentPage} of {totalPages}
+            </div>
 
-                <button
-                    onClick={() => handlePageChange(currentPage + 1)}
-                    disabled={currentPage === totalPages}
-                    className="p-2 rounded-full text-neutral-400 hover:text-neutral-900 hover:bg-neutral-50 disabled:opacity-30 disabled:hover:bg-transparent transition-all"
-                >
-                    <span className="sr-only">Next</span>
-                    <ChevronRightIcon className="h-5 w-5" aria-hidden="true" />
-                </button>
-            </nav>
+            {/* Next Button */}
+            <button
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={currentPage === totalPages}
+                className="group flex items-center gap-3 text-gray-400 hover:text-black disabled:opacity-20 disabled:hover:text-gray-400 disabled:cursor-default cursor-pointer transition-colors"
+                aria-label="Next Page"
+            >
+                <span className="text-[10px] uppercase tracking-[0.3em] font-sans">Next</span>
+                <ChevronRightIcon className="h-4 w-4 stroke-[1.5]" strokeWidth={1.5} />
+            </button>
         </div>
     );
 }
