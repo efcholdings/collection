@@ -11,13 +11,15 @@ interface ArtworkDetailPanelProps {
     artwork: Artwork | null;
     onClose: () => void;
     onEdit?: () => void;
-    isAdmin?: boolean;
+    userRole?: string | null;
 }
 
-export default function ArtworkDetailPanel({ artwork, onClose, onEdit, isAdmin = false }: ArtworkDetailPanelProps) {
+export default function ArtworkDetailPanel({ artwork, onClose, onEdit, userRole = null }: ArtworkDetailPanelProps) {
     const [mounted, setMounted] = useState(false);
     const [isDesktop, setIsDesktop] = useState(false);
     const [isLightboxOpen, setIsLightboxOpen] = useState(false);
+
+    const canEdit = ['EDITOR', 'MANAGER', 'ADMIN'].includes(userRole || '');
 
     // Multi-image state
     const images = artwork ? [
@@ -350,7 +352,7 @@ export default function ArtworkDetailPanel({ artwork, onClose, onEdit, isAdmin =
                                         Close View
                                     </button>
 
-                                    {isAdmin && (
+                                    {canEdit && (
                                         <>
                                             <span
                                                 className="text-black opacity-20 font-light text-[10px]"

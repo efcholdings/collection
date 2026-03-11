@@ -23,21 +23,24 @@ interface GalleryManagerProps {
     currentPage?: number; // Optional because search mode manages its own page
     categories: string[];
     artists: string[];
-    isAdmin?: boolean;
+    userRole?: string | null;
 }
 
 type ViewMode = 'grid' | 'list';
 
-export default function GalleryManager({ artworks, totalCount, currentPage = 1, categories, artists, isAdmin = false }: GalleryManagerProps) {
+export default function GalleryManager({ artworks, totalCount, currentPage = 1, categories, artists, userRole = null }: GalleryManagerProps) {
     const [selectedArtwork, setSelectedArtwork] = useState<Artwork | null>(null);
     const [editingArtwork, setEditingArtwork] = useState<Artwork | null>(null);
     const [isCreating, setIsCreating] = useState(false); // New state
     const [isReportOpen, setIsReportOpen] = useState(false); // Report Builder State
     const [viewMode, setViewMode] = useState<ViewMode>('list'); // Default to list as requested
 
+    const isAdmin = userRole === 'ADMIN';
+    const canEdit = ['EDITOR', 'MANAGER', 'ADMIN'].includes(userRole || '');
+
     useEffect(() => {
-        console.log('GalleryManager isAdmin prop:', isAdmin);
-    }, [isAdmin]);
+        console.log('GalleryManager userRole prop:', userRole);
+    }, [userRole]);
 
     // Sync selectedArtwork with refreshed data
     useEffect(() => {
@@ -153,7 +156,7 @@ export default function GalleryManager({ artworks, totalCount, currentPage = 1, 
 
                         {/* Utility Toolbar - Artlogic Style */}
                         <div className="flex items-center gap-6 md:gap-4 relative z-50">
-                            {isAdmin && (
+                            {canEdit && (
                                 <>
                                     <HoverButton onClick={() => setIsCreating(true)}>
                                         + Add Artwork
@@ -218,7 +221,7 @@ export default function GalleryManager({ artworks, totalCount, currentPage = 1, 
                                                 artwork={art}
                                                 onSelect={setSelectedArtwork}
                                                 onEdit={setEditingArtwork}
-                                                isAdmin={isAdmin}
+                                                userRole={userRole}
                                             />
                                         ))}
                                     </tbody>
@@ -304,7 +307,7 @@ export default function GalleryManager({ artworks, totalCount, currentPage = 1, 
                             setEditingArtwork(selectedArtwork);
                             // setSelectedArtwork(null); // Keep detail view open underneath
                         }}
-                        isAdmin={isAdmin}
+                        userRole={userRole}
                     />
                 )}
 
@@ -317,6 +320,7 @@ export default function GalleryManager({ artworks, totalCount, currentPage = 1, 
                 {editingArtwork && (
                     <ArtworkEditor
                         artwork={editingArtwork}
+                        userRole={userRole}
                         onClose={() => {
                             setEditingArtwork(null);
                             // setSelectedArtwork(null); // Return to detail view

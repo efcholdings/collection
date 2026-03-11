@@ -24,15 +24,17 @@ const ArtworkSchema = z.object({
     purchasePrice: z.string().optional().nullable(),
 });
 
-async function checkAdmin() {
+async function checkPermission(requiredRoles: string[]) {
     const session = await auth();
-    if (!session?.user) {
+    // @ts-ignore
+    const userRole = session?.user?.role;
+    if (!userRole || !requiredRoles.includes(userRole as string)) {
         throw new Error('Unauthorized');
     }
 }
 
 export async function updateArtwork(id: string, formData: FormData) {
-    await checkAdmin();
+    await checkPermission(['EDITOR', 'MANAGER', 'ADMIN']);
 
     const data = {
         title: formData.get('title') as string,
@@ -66,7 +68,7 @@ export async function updateArtwork(id: string, formData: FormData) {
 }
 
 export async function deleteArtwork(id: string) {
-    await checkAdmin();
+    await checkPermission(['MANAGER', 'ADMIN']);
 
     await prisma.artwork.delete({
         where: { id },
@@ -77,7 +79,7 @@ export async function deleteArtwork(id: string) {
 }
 
 export async function createArtwork(formData: FormData) {
-    await checkAdmin();
+    await checkPermission(['EDITOR', 'MANAGER', 'ADMIN']);
 
     const data = {
         title: formData.get('title') as string,

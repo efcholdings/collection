@@ -36,9 +36,10 @@ export default async function Home({ searchParams }: PageProps) {
 
   const { categories, artists } = await getFilters();
 
-  // Fetch session for admin check
+  // Fetch session for RBAC
   const session = await auth();
-  console.log('Session user:', session?.user); // Debug log
+  // @ts-ignore
+  const userRole = session?.user?.role || null;
 
   return (
     <GalleryManager
@@ -47,7 +48,7 @@ export default async function Home({ searchParams }: PageProps) {
       currentPage={page}
       categories={categories}
       artists={artists}
-      isAdmin={!!session?.user}
+      userRole={userRole}
     />
   );
 }

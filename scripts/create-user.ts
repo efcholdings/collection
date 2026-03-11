@@ -15,7 +15,9 @@ async function main() {
   }
 
   const name = process.argv[4] || 'Admin';
-  const role = process.argv[5] || 'ADMIN';
+  // Cast string to enum type
+  const roleStr = process.argv[5] || 'ADMIN';
+  const role = roleStr as any;
 
   console.log(`Creating user: ${email}...`);
 

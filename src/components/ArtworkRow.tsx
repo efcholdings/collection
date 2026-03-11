@@ -7,11 +7,12 @@ interface ArtworkRowProps {
     artwork: Artwork;
     onSelect: (artwork: Artwork) => void;
     onEdit?: (artwork: Artwork) => void;
-    isAdmin?: boolean;
+    userRole?: string | null;
 }
 
-export default function ArtworkRow({ artwork, onSelect, onEdit, isAdmin = false }: ArtworkRowProps) {
+export default function ArtworkRow({ artwork, onSelect, onEdit, userRole = null }: ArtworkRowProps) {
     const validImage = getValidImageUrl(artwork.imagePath);
+    const canViewFinancials = ['EDITOR', 'MANAGER', 'ADMIN'].includes(userRole || '');
 
     return (
         <tr
@@ -86,8 +87,8 @@ export default function ArtworkRow({ artwork, onSelect, onEdit, isAdmin = false 
                 </div>
             </td>
 
-            {/* Column 5: Financials (Admin) - 21% */}
-            {isAdmin ? (
+            {/* Column 5: Financials (Admin/Manager/Editor) - 21% */}
+            {canViewFinancials ? (
                 <td className="pl-4 pr-0 py-12 align-middle text-right" style={{ width: '21%', maxWidth: 0, overflow: 'hidden' }}>
                     <div className="flex flex-col items-end justify-center gap-2 w-full">
                         {/* Appraisal */}

@@ -11,13 +11,16 @@ import { getValidImageUrl } from '@/utils/imageUtils';
 interface ArtworkEditorProps {
     artwork: Artwork;
     onClose: () => void;
+    userRole?: string | null;
 }
 
-export default function ArtworkEditor({ artwork, onClose }: ArtworkEditorProps) {
+export default function ArtworkEditor({ artwork, onClose, userRole = null }: ArtworkEditorProps) {
     const router = useRouter();
     const [isSaving, setIsSaving] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
     const [isUploading, setIsUploading] = useState(false);
+
+    const canDelete = ['MANAGER', 'ADMIN'].includes(userRole || '');
     const [images, setImages] = useState<string[]>([
         getValidImageUrl(artwork.imagePath) || '',
         getValidImageUrl(artwork.imagePath2) || '',
@@ -412,15 +415,17 @@ export default function ArtworkEditor({ artwork, onClose }: ArtworkEditorProps) 
                     >
                         {/* LEFT: Dangerous Action Styling */}
                         <div className="flex-1 flex justify-start">
-                            <button
-                                type="button"
-                                onClick={handleDelete}
-                                disabled={isDeleting}
-                                className="text-[9px] uppercase tracking-[0.2em] text-red-500 hover:text-red-700 transition-colors font-medium border-b border-transparent hover:border-red-700 pb-0.5 whitespace-nowrap"
-                                style={{ color: '#ef4444' }} // Soft red
-                            >
-                                {isDeleting ? 'Deleting...' : 'Delete'}
-                            </button>
+                            {canDelete && (
+                                <button
+                                    type="button"
+                                    onClick={handleDelete}
+                                    disabled={isDeleting}
+                                    className="text-[9px] uppercase tracking-[0.2em] text-red-500 hover:text-red-700 transition-colors font-medium border-b border-transparent hover:border-red-700 pb-0.5 whitespace-nowrap"
+                                    style={{ color: '#ef4444' }} // Soft red
+                                >
+                                    {isDeleting ? 'Deleting...' : 'Delete'}
+                                </button>
+                            )}
                         </div>
 
                         {/* CENTER: Action Bar */}
