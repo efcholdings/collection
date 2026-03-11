@@ -27,6 +27,14 @@ export default function ArtworkCreator({ onClose }: { onClose: () => void }) {
         const file = e.target.files?.[0];
         if (!file) return;
 
+        if (images[activeImageIndex] && getValidImageUrl(images[activeImageIndex])) {
+            const confirmOverwrite = window.confirm("This will delete the existing image. Would you like to continue?");
+            if (!confirmOverwrite) {
+                if (e.target) e.target.value = ''; // Reset input
+                return;
+            }
+        }
+
         setIsUploading(true);
         try {
             const response = await fetch(`/api/upload?filename=${encodeURIComponent(file.name)}`, {
@@ -34,13 +42,16 @@ export default function ArtworkCreator({ onClose }: { onClose: () => void }) {
                 body: file,
             });
 
-            if (!response.ok) throw new Error('Upload failed');
+            if (!response.ok) {
+                const errData = await response.json().catch(() => ({}));
+                throw new Error(errData.details || errData.error || 'Upload failed');
+            }
             
             const blob = await response.json();
             updateImage(activeImageIndex, blob.url);
-        } catch (error) {
+        } catch (error: any) {
             console.error('Error uploading image:', error);
-            alert('Failed to upload image. Make sure your BLOB_READ_WRITE_TOKEN is correct.');
+            alert(`Failed to upload image. ${error.message}`);
         } finally {
             setIsUploading(false);
             if (e.target) e.target.value = ''; // Reset input
