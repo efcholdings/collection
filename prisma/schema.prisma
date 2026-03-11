@@ -6,8 +6,9 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 model Artwork {
@@ -32,4 +33,14 @@ model Artwork {
   description String?  // Optional detailed description
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+}
+
+model User {
+  id             String   @id @default(uuid())
+  email          String   @unique
+  hashedPassword String
+  name           String?
+  role           String   @default("USER") // For scaling to 5-10 users with potential permissions
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 }

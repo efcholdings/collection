@@ -1,51 +1,41 @@
 
 import NextAuth from 'next-auth';
+import { authConfig } from './auth.config';
 import Credentials from 'next-auth/providers/credentials';
 import { z } from 'zod';
 
+import { PrismaClient } from '@prisma/client';
+import bcrypt from 'bcrypt';
+
+const prisma = new PrismaClient();
+
 export const { handlers, auth, signIn, signOut } = NextAuth({
+    ...authConfig,
     providers: [
         Credentials({
             credentials: {
-                username: { label: "Username", type: "text" },
+                email: { label: "Email", type: "email" },
                 password: { label: "Password", type: "password" },
             },
             authorize: async (credentials) => {
-                console.log('Authorize called with:', credentials);
                 const parsedCredentials = z
-                    .object({ username: z.string(), password: z.string() })
+                    .object({ email: z.string().email(), password: z.string() })
                     .safeParse(credentials);
 
                 if (parsedCredentials.success) {
-                    const { username, password } = parsedCredentials.data;
-                    console.log('Checking against:', username, password);
-                    // Hardcoded admin check as requested
-                    if (username === 'admin' && password === 'admin123') {
-                        console.log('Login successful');
-                        return { id: '1', name: 'Admin', email: 'admin@example.com' };
+                    const { email, password } = parsedCredentials.data;
+                    
+                    const user = await prisma.user.findUnique({ where: { email } });
+                    if (!user || user.hashedPassword === null) return null;
+
+                    const passwordsMatch = await bcrypt.compare(password, user.hashedPassword);
+
+                    if (passwordsMatch) {
+                        return { id: user.id, name: user.name, email: user.email, role: user.role };
                     }
                 }
-                console.log('Login failed');
                 return null;
             },
         }),
     ],
-    pages: {
-        signIn: '/login',
-    },
-    callbacks: {
-        async jwt({ token, user }) {
-            if (user) {
-                token.id = user.id;
-            }
-            return token;
-        },
-        async session({ session, token }) {
-            if (session.user && token.id) {
-                // @ts-ignore
-                session.user.id = token.id as string;
-            }
-            return session;
-        },
-    },
 });

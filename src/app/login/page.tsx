@@ -23,8 +23,8 @@ export default function LoginPage() {
                     if (res?.error) setError(res.error);
                 }} className="space-y-4">
                     <div>
-                        <label className="block text-sm font-medium text-gray-700">Username</label>
-                        <input type="text" name="username" className="mt-1 w-full rounded-md border p-2" required />
+                        <label className="block text-sm font-medium text-gray-700">Email</label>
+                        <input type="email" name="email" className="mt-1 w-full rounded-md border p-2" required />
                     </div>
                     <div>
                         <label className="block text-sm font-medium text-gray-700">Password</label>

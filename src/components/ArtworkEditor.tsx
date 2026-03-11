@@ -17,6 +17,7 @@ export default function ArtworkEditor({ artwork, onClose }: ArtworkEditorProps) 
     const router = useRouter();
     const [isSaving, setIsSaving] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
+    const [isUploading, setIsUploading] = useState(false);
     const [images, setImages] = useState<string[]>([
         getValidImageUrl(artwork.imagePath) || '',
         getValidImageUrl(artwork.imagePath2) || '',
@@ -35,6 +36,30 @@ export default function ArtworkEditor({ artwork, onClose }: ArtworkEditorProps) 
 
     const hasInvalidImage = images.some(img => img && !getValidImageUrl(img));
     const [isDesktop, setIsDesktop] = useState(false);
+
+    const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        setIsUploading(true);
+        try {
+            const response = await fetch(`/api/upload?filename=${encodeURIComponent(file.name)}`, {
+                method: 'POST',
+                body: file,
+            });
+
+            if (!response.ok) throw new Error('Upload failed');
+            
+            const blob = await response.json();
+            updateImage(activeImageIndex, blob.url);
+        } catch (error) {
+            console.error('Error uploading image:', error);
+            alert('Failed to upload image. Make sure your BLOB_READ_WRITE_TOKEN is correct.');
+        } finally {
+            setIsUploading(false);
+            if (e.target) e.target.value = ''; // Reset input
+        }
+    };
 
     useEffect(() => {
         setMounted(true);
@@ -224,6 +249,19 @@ export default function ArtworkEditor({ artwork, onClose }: ArtworkEditorProps) 
                                 placeholder={`SOURCE IMAGE URL`}
                                 minRows={1}
                             />
+                            
+                            <div className="mt-3 flex justify-center w-full">
+                                <label className={`cursor-pointer border border-neutral-200 px-4 py-1 flex items-center justify-center transition-colors hover:border-black hover:text-black font-sans text-[9px] uppercase tracking-[0.4em] ${isUploading ? 'opacity-50 text-gray-400' : 'text-gray-500'}`}>
+                                    {isUploading ? 'UPLOADING...' : 'UPLOAD FILE'}
+                                    <input 
+                                        type="file" 
+                                        accept="image/png, image/jpeg, image/webp" 
+                                        className="hidden" 
+                                        onChange={handleUpload}
+                                        disabled={isUploading}
+                                    />
+                                </label>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -391,10 +429,10 @@ export default function ArtworkEditor({ artwork, onClose }: ArtworkEditorProps) 
 
                             <button
                                 type="submit"
-                                disabled={isSaving || hasInvalidImage}
+                                disabled={isSaving || isUploading || hasInvalidImage}
                                 className="text-[10px] tracking-[0.3em] font-sans text-gray-500 hover:text-black transition-colors uppercase disabled:opacity-50"
                             >
-                                {isSaving ? 'Saving...' : 'Save Changes'}
+                                {isSaving ? 'Saving...' : isUploading ? 'Uploading...' : 'Save Changes'}
                             </button>
                         </div>
 

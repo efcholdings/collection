@@ -11,6 +11,7 @@ import { getValidImageUrl } from '@/utils/imageUtils';
 export default function ArtworkCreator({ onClose }: { onClose: () => void }) {
     const router = useRouter();
     const [isSaving, setIsSaving] = useState(false);
+    const [isUploading, setIsUploading] = useState(false);
     const [images, setImages] = useState<string[]>(['', '', '', '', '']);
     const [activeImageIndex, setActiveImageIndex] = useState(0);
 
@@ -21,6 +22,30 @@ export default function ArtworkCreator({ onClose }: { onClose: () => void }) {
     };
 
     const hasInvalidImage = images.some(img => img && !getValidImageUrl(img));
+
+    const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        setIsUploading(true);
+        try {
+            const response = await fetch(`/api/upload?filename=${encodeURIComponent(file.name)}`, {
+                method: 'POST',
+                body: file,
+            });
+
+            if (!response.ok) throw new Error('Upload failed');
+            
+            const blob = await response.json();
+            updateImage(activeImageIndex, blob.url);
+        } catch (error) {
+            console.error('Error uploading image:', error);
+            alert('Failed to upload image. Make sure your BLOB_READ_WRITE_TOKEN is correct.');
+        } finally {
+            setIsUploading(false);
+            if (e.target) e.target.value = ''; // Reset input
+        }
+    };
 
     const handleSave = async (formData: FormData) => {
         setIsSaving(true);
@@ -180,11 +205,11 @@ export default function ArtworkCreator({ onClose }: { onClose: () => void }) {
                         {/* Action Bar (Sticky Bottom) */}
                         <div className="p-6 border-t border-neutral-100 flex justify-center bg-white z-10 shrink-0">
                             <button
-                                disabled={isSaving || hasInvalidImage}
+                                disabled={isSaving || isUploading || hasInvalidImage}
                                 type="submit"
                                 className="bg-neutral-900 text-white px-12 py-3 text-[10px] font-bold uppercase tracking-[0.2em] hover:bg-black transition-colors shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
                             >
-                                {isSaving ? 'Creating...' : 'Create Record'}
+                                {isSaving ? 'Creating...' : isUploading ? 'Uploading Image...' : 'Create Record'}
                             </button>
                         </div>
                     </div>
@@ -246,6 +271,19 @@ export default function ArtworkCreator({ onClose }: { onClose: () => void }) {
                                     Unsupported File Format (.jpg, .png only)
                                 </p>
                             )}
+
+                            <div className="mt-3 flex justify-center w-full">
+                                <label className={`cursor-pointer border border-neutral-200 px-4 py-1 flex items-center justify-center transition-colors hover:border-black hover:text-black font-sans text-[9px] uppercase tracking-[0.4em] ${isUploading ? 'opacity-50 text-gray-400' : 'text-gray-500'}`}>
+                                    {isUploading ? 'UPLOADING...' : 'UPLOAD FILE'}
+                                    <input 
+                                        type="file" 
+                                        accept="image/png, image/jpeg, image/webp" 
+                                        className="hidden" 
+                                        onChange={handleUpload}
+                                        disabled={isUploading}
+                                    />
+                                </label>
+                            </div>
                         </div>
 
                         {/* Mobile Only URL Input */}
