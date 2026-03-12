@@ -101,7 +101,7 @@ export default function GalleryManager({ artworks, totalCount, currentPage = 1, 
     }, []);
 
     return (
-        <div className="flex h-screen bg-white overflow-hidden">
+        <div className="flex h-screen w-full bg-white overflow-hidden">
             <Sidebar 
                 categories={categories} 
                 artists={artists} 
@@ -109,8 +109,8 @@ export default function GalleryManager({ artworks, totalCount, currentPage = 1, 
                 onClose={() => setIsMobileMenuOpen(false)}
             />
 
-            <div className="flex-1 flex flex-col md:ml-64 h-full relative">
-                <main className="flex-1 overflow-y-auto p-3 md:p-12 pb-32">
+            <div className="flex-1 flex flex-col md:ml-64 h-full relative min-w-0">
+                <main className="flex-1 overflow-x-hidden overflow-y-auto p-3 md:p-12 pb-32 w-full">
                     {/* Utility Bar */}
                     <header className="mb-16 flex flex-col items-center gap-6 relative">
 
