@@ -192,7 +192,7 @@ export default function ArtworkDetailPanel({ artwork, onClose, onEdit, userRole 
 
                             {/* Thumbnails */}
                             {images.length > 1 && (
-                                <div className="absolute bottom-[72px] left-0 w-full flex justify-center gap-3 px-8 z-10">
+                                <div className="absolute bottom-4 md:bottom-8 left-0 w-full flex justify-center gap-3 px-8 z-10">
                                     {images.map((img, idx) => (
                                         <button
                                             key={idx}

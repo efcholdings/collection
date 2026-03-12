@@ -15,100 +15,118 @@ export default function ArtworkRow({ artwork, onSelect, onEdit, userRole = null 
     const canViewFinancials = ['EDITOR', 'MANAGER', 'ADMIN'].includes(userRole || '');
 
     return (
-        <tr
-            className="group border-b border-gray-50 hover:bg-neutral-50 transition-colors"
+        <div
+            className="group border-b border-gray-50 bg-white hover:bg-neutral-50 transition-colors flex flex-col md:flex-row md:items-center py-6 md:py-8 px-4 md:px-0 gap-4 md:gap-0"
         >
-            {/* Column 1: Artwork (Thumb + Title + Artist) - 25% */}
-            <td className="p-4 py-12 align-middle" style={{ width: '25%', overflow: 'hidden' }}>
-                <div className="flex items-center gap-8 overflow-hidden h-full">
-                    {/* Thumbnail - 80px Fixed Width */}
-                    <div
-                        onClick={() => onSelect(artwork)}
-                        className="relative h-20 w-20 bg-neutral-100 overflow-hidden flex-shrink-0 cursor-pointer"
-                        style={{ width: '80px', height: '80px', minWidth: '80px' }}
-                    >
-                        {validImage ? (
-                            <Image
-                                src={validImage}
-                                alt={artwork.title || 'Artwork'}
-                                width={80}
-                                height={80}
-                                className="object-contain w-full h-full"
-                                style={{ maxWidth: '100%', maxHeight: '100%' }}
-                                unoptimized
-                            />
-                        ) : (
-                            <div className="w-full h-full flex items-center justify-center bg-gray-50 text-neutral-300">
-                                <span className="text-[9px] uppercase tracking-wider">No Img</span>
-                            </div>
-                        )}
-                    </div>
-
-                    {/* Text Data - Relaxed Leading */}
-                    <div className="flex flex-col justify-center overflow-hidden gap-4 flex-1 h-full min-w-0">
-                        <span
-                            onClick={() => onSelect(artwork)}
-                            className="font-serif text-[15px] text-black truncate cursor-pointer hover:text-neutral-500 transition-colors leading-loose block"
-                            title={artwork.title}
-                        >
-                            {artwork.title}
-                        </span>
-                        <span className="font-serif text-[13px] text-neutral-500 italic truncate leading-loose block">
-                            {artwork.artist}
-                        </span>
-                        {/* ID */}
-                        <span className="text-[10px] font-sans text-neutral-300 select-all tracking-wide truncate block mt-0.5 leading-relaxed">
-                            {artwork.originalId}
-                        </span>
-                    </div>
+            {/* Column 1: Artwork (Thumb + Title + Artist) */}
+            <div className="w-full md:w-1/4 flex items-center gap-6 overflow-hidden md:pl-4">
+                {/* Thumbnail */}
+                <div
+                    onClick={() => onSelect(artwork)}
+                    className="relative w-16 h-16 md:w-20 md:h-20 bg-neutral-100 overflow-hidden flex-shrink-0 cursor-pointer"
+                >
+                    {validImage ? (
+                        <Image
+                            src={validImage}
+                            alt={artwork.title || 'Artwork'}
+                            fill
+                            className="object-contain"
+                            unoptimized
+                        />
+                    ) : (
+                        <div className="w-full h-full flex items-center justify-center bg-gray-50 text-neutral-300">
+                            <span className="text-[8px] md:text-[9px] uppercase tracking-wider">No Img</span>
+                        </div>
+                    )}
                 </div>
-            </td>
 
-            {/* Column 2: Medium - 20% */}
-            <td className="p-4 py-12 align-middle" style={{ width: '20%', maxWidth: 0, overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>
-                <span className="text-[13px] font-sans font-light text-neutral-800 leading-loose block truncate" title={artwork.medium || ''}>
-                    {artwork.medium || <span className="text-neutral-300">—</span>}
-                </span>
-            </td>
-
-            {/* Column 3: Dimensions - 17% */}
-            <td className="p-4 py-12 align-middle" style={{ width: '17%', maxWidth: 0, overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>
-                <span className="text-[13px] font-sans font-light text-neutral-800 leading-loose block truncate" title={formatDimensions(artwork)}>
-                    {formatDimensions(artwork) || <span className="text-neutral-300">—</span>}
-                </span>
-            </td>
-
-            {/* Column 4: Category - 17% */}
-            <td className="p-4 py-12 align-middle text-center" style={{ width: '17%', maxWidth: 0, overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>
-                <div className="inline-block max-w-full truncate">
-                    <span className="text-[10px] font-sans text-neutral-500 uppercase tracking-[0.1em] bg-neutral-50 px-3 py-1.5 rounded-sm mx-auto tracking-wide block truncate border border-neutral-100">
-                        {artwork.category || <span className="text-neutral-300">–</span>}
+                {/* Text Data */}
+                <div className="flex flex-col justify-center overflow-hidden gap-1 md:gap-2 flex-1 min-w-0">
+                    <span
+                        onClick={() => onSelect(artwork)}
+                        className="font-serif text-[14px] md:text-[15px] text-black truncate cursor-pointer hover:text-neutral-500 transition-colors leading-tight"
+                        title={artwork.title}
+                    >
+                        {artwork.title}
+                    </span>
+                    <span className="font-serif text-[12px] md:text-[13px] text-neutral-500 italic truncate leading-tight">
+                        {artwork.artist}
+                    </span>
+                    {/* ID */}
+                    <span className="text-[10px] md:text-[10px] font-sans text-neutral-300 select-all tracking-wide truncate block">
+                        {artwork.originalId}
                     </span>
                 </div>
-            </td>
+            </div>
 
-            {/* Column 5: Financials (Admin/Manager/Editor) - 21% */}
-            {canViewFinancials ? (
-                <td className="pl-4 pr-0 py-12 align-middle text-right" style={{ width: '21%', maxWidth: 0, overflow: 'hidden' }}>
-                    <div className="flex flex-col items-end justify-center gap-2 w-full">
-                        {/* Appraisal */}
-                        <div className="flex items-center gap-4 w-full justify-end">
-                            <span className="text-[9px] text-neutral-300 uppercase tracking-[0.2em] flex-shrink-0">Est</span>
-                            <span className="text-[13px] font-sans font-light text-black min-w-[70px] text-right truncate tabular-nums">
-                                {artwork.appraisalValue || <span className="text-neutral-300">–</span>}
-                            </span>
-                        </div>
-                        {/* Purchase */}
-                        <div className="flex items-center gap-4 w-full justify-end">
-                            <span className="text-[9px] text-neutral-300 uppercase tracking-[0.2em] flex-shrink-0">Paid</span>
-                            <span className="text-[13px] font-sans font-light text-black min-w-[70px] text-right truncate tabular-nums">
-                                {artwork.purchasePrice || <span className="text-neutral-300">–</span>}
-                            </span>
+            {/* Sub-Details Wrapper (Mobile Stack / Desktop Inline) */}
+            <div className="flex flex-col md:flex-row md:flex-1 md:items-center gap-3 md:gap-0 mt-4 md:mt-0 pl-22 md:pl-0">
+                {/* Column 2: Medium */}
+                <div className="w-full md:w-1/5 truncate md:px-4">
+                    <div className="flex md:hidden text-[9px] uppercase tracking-[0.2em] text-neutral-400 mb-1">Medium</div>
+                    <span className="text-[12px] md:text-[13px] font-sans font-light text-neutral-800 leading-tight block truncate" title={artwork.medium || ''}>
+                        {artwork.medium || <span className="text-neutral-300">—</span>}
+                    </span>
+                </div>
+
+                {/* Column 3: Dimensions */}
+                <div className="w-full md:w-[22.5%] truncate md:px-4">
+                    <div className="flex md:hidden text-[9px] uppercase tracking-[0.2em] text-neutral-400 mb-1">Dimensions</div>
+                    <span className="text-[12px] md:text-[13px] font-sans font-light text-neutral-800 leading-tight block truncate" title={formatDimensions(artwork)}>
+                        {formatDimensions(artwork) || <span className="text-neutral-300">—</span>}
+                    </span>
+                </div>
+
+                {/* Column 4: Category */}
+                <div className="w-full md:w-[22.5%] truncate md:px-4 md:text-center">
+                    <div className="flex md:hidden text-[9px] uppercase tracking-[0.2em] text-neutral-400 mb-1">Category</div>
+                    <div className="inline-block max-w-full truncate">
+                        <span className="text-[9px] md:text-[10px] font-sans text-neutral-500 uppercase tracking-[0.1em] bg-neutral-50 px-2 md:px-3 py-1 md:py-1.5 rounded-sm md:mx-auto tracking-wide block truncate border border-neutral-100">
+                            {artwork.category || <span className="text-neutral-300">–</span>}
+                        </span>
+                    </div>
+                </div>
+
+                {/* Column 5: Financials */}
+                {canViewFinancials && (
+                    <div className="w-full md:w-[28%] md:pr-4 md:text-right mt-2 md:mt-0">
+                        <div className="flex flex-col md:items-end justify-center gap-1 md:gap-2 w-full">
+                            {/* Appraisal */}
+                            <div className="flex items-center gap-4 md:justify-end w-full">
+                                <span className="text-[9px] text-neutral-300 uppercase tracking-[0.2em] w-12 md:w-auto">Est</span>
+                                <span className="text-[12px] md:text-[13px] font-sans font-light text-black truncate tabular-nums">
+                                    {artwork.appraisalValue || <span className="text-neutral-300">–</span>}
+                                </span>
+                            </div>
+                            
+                            {/* Cost */}
+                            <div className="flex items-center gap-4 md:justify-end w-full">
+                                <span className="text-[9px] text-neutral-300 uppercase tracking-[0.2em] w-12 md:w-auto">Cost</span>
+                                <span className="text-[12px] md:text-[13px] font-sans font-light text-black truncate tabular-nums">
+                                    {artwork.purchasePrice || <span className="text-neutral-300">–</span>}
+                                </span>
+                            </div>
                         </div>
                     </div>
-                </td>
-            ) : <td style={{ width: '21%' }} />}
-        </tr>
+                )}
+            </div>
+
+            {/* Edit Button Configuration */}
+            {onEdit && ['EDITOR', 'MANAGER', 'ADMIN'].includes(userRole || '') && (
+                <div className="absolute top-6 right-4 md:relative md:top-auto md:right-auto md:ml-4">
+                    <button
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            onEdit(artwork);
+                        }}
+                        className="p-2 md:p-3 bg-neutral-50 text-neutral-400 hover:text-black hover:bg-neutral-100 transition-colors rounded-sm cursor-pointer ml-auto"
+                        title="Edit Artwork"
+                    >
+                        <PencilSquareIcon className="w-4 h-4 md:w-5 md:h-5" />
+                    </button>
+                </div>
+            )}
+        </div>
     );
 }
 

@@ -211,38 +211,28 @@ export default function GalleryManager({ artworks, totalCount, currentPage = 1, 
                     <div className="w-full transition-all duration-300 px-2 lg:px-0">
                         {/* Content Grid/List */}
                         {viewMode === 'list' ? (
-                            <div className="w-full overflow-x-auto">
-                                <table className="w-full min-w-[1000px] table-fixed border-collapse">
-                                    <colgroup>
-                                        <col style={{ width: '25%' }} />
-                                        <col style={{ width: '20%' }} />
-                                        <col style={{ width: '17%' }} />
-                                        <col style={{ width: '17%' }} />
-                                        {isAdmin && <col style={{ width: '21%' }} />}
-                                    </colgroup>
-                                    <thead>
-                                        <tr className="border-b border-gray-100">
-                                            <th className="text-left pt-4 pb-1 px-4 text-[9px] uppercase tracking-[0.5em] text-gray-400 font-sans font-light align-bottom">Artwork</th>
-                                            <th className="text-left pt-4 pb-1 px-4 text-[9px] uppercase tracking-[0.5em] text-gray-400 font-sans font-light align-bottom">Medium</th>
-                                            <th className="text-left pt-4 pb-1 px-4 text-[9px] uppercase tracking-[0.5em] text-gray-400 font-sans font-light align-bottom">Dimensions</th>
-                                            <th className="text-center pt-4 pb-1 px-4 text-[9px] uppercase tracking-[0.5em] text-gray-400 font-sans font-light align-bottom">Category</th>
-                                            {isAdmin && (
-                                                <th className="text-right pt-4 pb-1 pl-4 pr-0 text-[9px] uppercase tracking-[0.5em] text-gray-400 font-sans font-light align-bottom">Financials</th>
-                                            )}
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {displayArtworks.map(art => (
-                                            <ArtworkRow
-                                                key={art.id}
-                                                artwork={art}
-                                                onSelect={setSelectedArtwork}
-                                                onEdit={setEditingArtwork}
-                                                userRole={userRole}
-                                            />
-                                        ))}
-                                    </tbody>
-                                </table>
+                            <div className="w-full">
+                                {/* Desktop/Tablet Table Header */}
+                                <div className="hidden md:flex border-b border-gray-100 flex-row">
+                                    <div className="w-1/4 text-left pt-4 pb-1 px-4 text-[9px] uppercase tracking-[0.5em] text-gray-400 font-sans font-light align-bottom">Artwork</div>
+                                    <div className="w-1/5 text-left pt-4 pb-1 px-4 text-[9px] uppercase tracking-[0.5em] text-gray-400 font-sans font-light align-bottom">Medium</div>
+                                    <div className="w-[17%] text-left pt-4 pb-1 px-4 text-[9px] uppercase tracking-[0.5em] text-gray-400 font-sans font-light align-bottom">Dimensions</div>
+                                    <div className="w-[17%] text-center pt-4 pb-1 px-4 text-[9px] uppercase tracking-[0.5em] text-gray-400 font-sans font-light align-bottom">Category</div>
+                                    {isAdmin && (
+                                        <div className="w-[21%] text-right pt-4 pb-1 pl-4 pr-0 text-[9px] uppercase tracking-[0.5em] text-gray-400 font-sans font-light align-bottom">Financials</div>
+                                    )}
+                                </div>
+                                <div className="flex flex-col">
+                                    {displayArtworks.map(art => (
+                                        <ArtworkRow
+                                            key={art.id}
+                                            artwork={art}
+                                            onSelect={setSelectedArtwork}
+                                            onEdit={setEditingArtwork}
+                                            userRole={userRole}
+                                        />
+                                    ))}
+                                </div>
                             </div>
                         ) : (
                             <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8 gap-3 sm:gap-6 w-full">
