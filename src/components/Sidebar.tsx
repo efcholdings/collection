@@ -2,12 +2,16 @@
 
 import { useRouter, useSearchParams } from 'next/navigation';
 
+import { XMarkIcon } from '@heroicons/react/24/outline';
+
 interface SidebarProps {
     categories: string[];
     artists: string[];
+    isOpen?: boolean;
+    onClose?: () => void;
 }
 
-export default function Sidebar({ categories, artists }: SidebarProps) {
+export default function Sidebar({ categories, artists, isOpen = false, onClose }: SidebarProps) {
     const router = useRouter();
     const searchParams = useSearchParams();
 
@@ -25,11 +29,32 @@ export default function Sidebar({ categories, artists }: SidebarProps) {
             params.delete(key);
         }
         router.push(`/?${params.toString()}`);
+        if (onClose) onClose(); // Auto-close menu on mobile after selection
     };
 
     return (
-        <aside className="w-64 flex-shrink-0 h-screen overflow-y-auto border-r border-neutral-200 p-6 hidden md:block fixed left-0 top-0 bg-white z-10">
-            <h2 className="font-serif text-xl font-bold mb-8 tracking-tight">Art Collection</h2>
+        <>
+            {/* Mobile Backdrop Overlay */}
+            {isOpen && (
+                <div 
+                    className="fixed inset-0 bg-neutral-900/40 backdrop-blur-sm z-40 md:hidden transition-opacity duration-300"
+                    onClick={onClose}
+                />
+            )}
+
+            {/* Sidebar Container */}
+            <aside className={`w-64 flex-shrink-0 h-screen overflow-y-auto border-r border-neutral-200 p-6 fixed left-0 top-0 bg-white z-50 transition-transform duration-300 ease-in-out md:translate-x-0 ${isOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full'}`}>
+                
+                {/* Mobile Close Button */}
+                <button 
+                    className="md:hidden absolute top-6 right-6 p-2 text-neutral-400 hover:text-neutral-900 transition-colors"
+                    onClick={onClose}
+                    aria-label="Close Menu"
+                >
+                    <XMarkIcon className="w-6 h-6" />
+                </button>
+
+                <h2 className="font-serif text-xl font-bold mb-8 tracking-tight pr-6">Art Collection</h2>
 
             <div className="space-y-8">
                 <div>
@@ -81,5 +106,6 @@ export default function Sidebar({ categories, artists }: SidebarProps) {
                 </div>
             </div>
         </aside>
+        </>
     );
 }

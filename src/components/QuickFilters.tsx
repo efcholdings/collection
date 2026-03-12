@@ -34,14 +34,14 @@ export default function QuickFilters() {
     };
 
     return (
-        <div className="flex overflow-x-auto pb-4 gap-2 scrollbar-hide mb-6 border-b border-neutral-100">
+        <div className="flex overflow-x-auto pb-4 gap-2 scrollbar-hide mb-4 md:mb-6 border-b border-neutral-100">
             <button
                 onClick={() => {
                     const params = new URLSearchParams(searchParams.toString());
                     params.delete('category');
                     router.push(`/?${params.toString()}`);
                 }}
-                className={`whitespace-nowrap px-4 py-2 rounded-full text-xs font-bold uppercase tracking-widest transition-colors flex-shrink-0 ${!currentCategory
+                className={`whitespace-nowrap px-3 md:px-4 py-1.5 md:py-2 rounded-full text-[10px] md:text-xs font-bold uppercase tracking-widest transition-colors flex-shrink-0 ${!currentCategory
                     ? 'bg-neutral-900 text-white'
                     : 'bg-neutral-100 text-neutral-500 hover:bg-neutral-200'
                     }`}
@@ -53,7 +53,7 @@ export default function QuickFilters() {
                 <button
                     key={category}
                     onClick={() => handleFilter(category)}
-                    className={`whitespace-nowrap px-4 py-2 rounded-full text-xs font-bold uppercase tracking-widest transition-colors flex-shrink-0 ${currentCategory === category
+                    className={`whitespace-nowrap px-3 md:px-4 py-1.5 md:py-2 rounded-full text-[10px] md:text-xs font-bold uppercase tracking-widest transition-colors flex-shrink-0 ${currentCategory === category
                         ? 'bg-neutral-900 text-white'
                         : 'bg-neutral-100 text-neutral-500 hover:bg-neutral-200'
                         }`}

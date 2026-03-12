@@ -12,7 +12,7 @@ import ArtworkCreator from './ArtworkCreator';
 import ArtworkEditor from './ArtworkEditor';
 import { searchArtworks } from '@/actions/search';
 import { logout } from '@/actions/auth';
-import { PrinterIcon } from '@heroicons/react/24/outline';
+import { PrinterIcon, Bars3Icon } from '@heroicons/react/24/outline';
 import Image from 'next/image';
 import { getValidImageUrl } from '@/utils/imageUtils';
 import ReportBuilder from './ReportBuilder';
@@ -33,7 +33,8 @@ export default function GalleryManager({ artworks, totalCount, currentPage = 1, 
     const [editingArtwork, setEditingArtwork] = useState<Artwork | null>(null);
     const [isCreating, setIsCreating] = useState(false); // New state
     const [isReportOpen, setIsReportOpen] = useState(false); // Report Builder State
-    const [viewMode, setViewMode] = useState<ViewMode>('list'); // Default to list as requested
+    const [viewMode, setViewMode] = useState<ViewMode>('grid');
+    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
     const isAdmin = userRole === 'ADMIN';
     const canEdit = ['EDITOR', 'MANAGER', 'ADMIN'].includes(userRole || '');
@@ -101,16 +102,30 @@ export default function GalleryManager({ artworks, totalCount, currentPage = 1, 
 
     return (
         <div className="flex h-screen bg-white overflow-hidden">
-            <Sidebar categories={categories} artists={artists} />
+            <Sidebar 
+                categories={categories} 
+                artists={artists} 
+                isOpen={isMobileMenuOpen}
+                onClose={() => setIsMobileMenuOpen(false)}
+            />
 
             <div className="flex-1 flex flex-col md:ml-64 h-full relative">
-                <main className="flex-1 overflow-y-auto p-6 md:p-12 pb-32">
+                <main className="flex-1 overflow-y-auto p-3 md:p-12 pb-32">
                     {/* Utility Bar */}
                     <header className="mb-16 flex flex-col items-center gap-6 relative">
 
-                        {/* 1. Global Search (Centered, Minimal) */}
-                        <div className="w-full md:w-[75%] my-8">
-                            <SearchBar onSearch={triggerSearch} isSearching={isSearching} variant="minimal" />
+                        {/* 1. Global Search & Mobile Menu Toggle */}
+                        <div className="w-full md:w-[75%] my-8 flex items-center gap-4 px-4 md:px-0">
+                            <button 
+                                className="md:hidden p-2 -ml-2 text-neutral-500 hover:text-neutral-900 transition-colors"
+                                onClick={() => setIsMobileMenuOpen(true)}
+                                aria-label="Open Menu"
+                            >
+                                <Bars3Icon className="w-6 h-6" />
+                            </button>
+                            <div className="flex-1">
+                                <SearchBar onSearch={triggerSearch} isSearching={isSearching} variant="minimal" />
+                            </div>
                         </div>
 
                         {/* 2. Admin & Auth Status (Absolute Positioned Top-Right) */}
@@ -145,17 +160,17 @@ export default function GalleryManager({ artworks, totalCount, currentPage = 1, 
                     {/* Secondary Action Bar (Title & Tools) */}
                     <div className="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-6 px-2">
                         <div>
-                            <h1 className="font-serif text-3xl text-neutral-900 mt-6">
+                            <h1 className="font-serif text-2xl md:text-3xl text-neutral-900 mt-2 md:mt-6">
                                 Collection Management
                             </h1>
-                            <p className="text-neutral-500 text-sm mt-2 font-light">
+                            <p className="text-neutral-500 text-xs md:text-sm mt-1 md:mt-2 font-light">
                                 Showing {displayArtworks.length} of {displayTotal} Records
                                 {searchResults && <span className="ml-2 text-indigo-500 cursor-pointer hover:underline" onClick={() => setSearchResults(null)}>(Clear Search)</span>}
                             </p>
                         </div>
 
                         {/* Utility Toolbar - Artlogic Style */}
-                        <div className="flex items-center gap-6 md:gap-4 relative z-50">
+                        <div className="flex flex-wrap items-center gap-3 md:gap-4 relative z-50 mt-4 md:mt-0">
                             {canEdit && (
                                 <>
                                     <HoverButton onClick={() => setIsCreating(true)}>
@@ -189,9 +204,11 @@ export default function GalleryManager({ artworks, totalCount, currentPage = 1, 
                         </div>
                     </div>
 
-                    <QuickFilters />
+                    <div className="px-2 mb-6">
+                        <QuickFilters />
+                    </div>
 
-                    <div className="w-full transition-all duration-300">
+                    <div className="w-full transition-all duration-300 px-2 lg:px-0">
                         {/* Content Grid/List */}
                         {viewMode === 'list' ? (
                             <div className="w-full overflow-x-auto">
@@ -228,12 +245,7 @@ export default function GalleryManager({ artworks, totalCount, currentPage = 1, 
                                 </table>
                             </div>
                         ) : (
-                            <div style={{
-                                display: 'grid',
-                                gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
-                                gap: '24px',
-                                width: '100%'
-                            }}>
+                            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8 gap-3 sm:gap-6 w-full">
                                 {displayArtworks.map(art => (
                                     <div
                                         key={art.id}
@@ -276,8 +288,8 @@ export default function GalleryManager({ artworks, totalCount, currentPage = 1, 
                                             )}
                                         </div>
                                         <div className="w-full overflow-hidden">
-                                            <h3 className="font-serif text-sm text-neutral-900 truncate block">{art.title}</h3>
-                                            <p className="text-xs text-neutral-500 truncate block">{art.artist}</p>
+                                            <h3 className="font-serif text-[10px] sm:text-xs md:text-sm text-neutral-900 truncate block">{art.title}</h3>
+                                            <p className="text-[9px] sm:text-[10px] md:text-xs text-neutral-500 truncate block">{art.artist}</p>
                                         </div>
                                     </div>
                                 ))}

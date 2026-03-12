@@ -107,9 +107,9 @@ export default function ArtworkDetailPanel({ artwork, onClose, onEdit, userRole 
     } : {
         display: 'flex',
         flexDirection: 'column',
-        width: '95vw',
-        height: '85vh',
-        maxHeight: '85vh',
+        width: '100vw',
+        height: '100vh',
+        maxHeight: '100vh',
     };
 
     const leftPanelStyle: React.CSSProperties = isDesktop ? {
@@ -119,7 +119,7 @@ export default function ArtworkDetailPanel({ artwork, onClose, onEdit, userRole 
     } : {
         width: '100%',
         position: 'relative',
-        height: '40vh',
+        height: '45vh',
         flexShrink: 0,
     };
 
@@ -138,7 +138,8 @@ export default function ArtworkDetailPanel({ artwork, onClose, onEdit, userRole 
         minHeight: 0,
         display: 'flex',
         flexDirection: 'column',
-        paddingTop: '24px',
+        paddingTop: '20px',
+        paddingBottom: '20px',
     };
 
     return (
@@ -242,16 +243,10 @@ export default function ArtworkDetailPanel({ artwork, onClose, onEdit, userRole 
 
                                 {/* Title Block */}
                                 <div className="mb-0 mt-2 md:mt-0">
-                                    <h1
-                                        className="font-serif leading-tight font-light mb-2 md:mb-3"
-                                        style={{ fontFamily: 'var(--font-playfair), serif', fontSize: '36px' }} // Increased Title Size
-                                    >
+                                    <h1 className="font-serif leading-tight font-light mb-2 md:mb-3 text-3xl md:text-5xl" style={{ fontFamily: 'var(--font-playfair), serif' }}>
                                         {artwork.title}
                                     </h1>
-                                    <p
-                                        className="font-light text-gray-500"
-                                        style={{ fontFamily: 'var(--font-playfair), serif', fontSize: '24px' }} // Increased Artist Size
-                                    >
+                                    <p className="font-light text-gray-500 text-xl md:text-3xl" style={{ fontFamily: 'var(--font-playfair), serif' }}>
                                         {artwork.artist}
                                     </p>
                                 </div>
@@ -259,7 +254,7 @@ export default function ArtworkDetailPanel({ artwork, onClose, onEdit, userRole 
                                 {/* SECTIONS */}
                                 <div className="flex flex-col">
                                     {/* Core Info - Strict Header Separation (mt-12 / 48px) -- INLINE STYLE FORCE */}
-                                    <div style={{ marginTop: '48px' }}>
+                                    <div className="mt-8 md:mt-12">
                                         <Section title="CORE INFORMATION" defaultExpanded={true}>
                                             <div className="pt-2">
                                                 <DetailItem label="Year" value={artwork.year} />
@@ -275,7 +270,7 @@ export default function ArtworkDetailPanel({ artwork, onClose, onEdit, userRole 
                                     </div>
 
                                     {/* Provenance & History */}
-                                    <div style={{ marginTop: '40px' }}>
+                                    <div className="mt-6 md:mt-10">
                                         <Section title="PROVENANCE & HISTORY" defaultExpanded={true}>
                                             <div className="pt-2">
                                                 {artwork.description && (
@@ -311,7 +306,7 @@ export default function ArtworkDetailPanel({ artwork, onClose, onEdit, userRole 
                                     </div>
 
                                     {/* Financials & Valuation */}
-                                    <div style={{ marginTop: '40px' }}>
+                                    <div className="mt-6 md:mt-10">
                                         <Section title="FINANCIALS & VALUATION" defaultExpanded={false}>
                                             <div className="grid grid-cols-2 gap-6 bg-neutral-50 p-4 md:p-6 rounded-sm border border-gray-100 pt-6">
                                                 <div className="flex flex-col gap-1">
@@ -341,10 +336,7 @@ export default function ArtworkDetailPanel({ artwork, onClose, onEdit, userRole 
                                 </div>
 
                                 {/* Action Bar - Centered at Bottom with Strict Spacing -- INLINE STYLE FORCE */}
-                                <div
-                                    className="flex justify-center items-center w-full"
-                                    style={{ marginTop: '64px', paddingBottom: '40px' }}
-                                >
+                                <div className="flex justify-center items-center w-full mt-10 md:mt-16 pb-6 md:pb-10">
                                     <button
                                         onClick={onClose}
                                         className="text-[10px] tracking-[0.3em] font-sans text-gray-500 hover:text-black transition-colors uppercase"
@@ -354,10 +346,7 @@ export default function ArtworkDetailPanel({ artwork, onClose, onEdit, userRole 
 
                                     {canEdit && (
                                         <>
-                                            <span
-                                                className="text-black opacity-20 font-light text-[10px]"
-                                                style={{ margin: '0 32px' }}
-                                            >|</span>
+                                            <span className="text-black opacity-20 font-light text-[10px] mx-4 md:mx-8">|</span>
                                             <button
                                                 onClick={() => {
                                                     if (onEdit) onEdit();
