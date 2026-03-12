@@ -75,31 +75,29 @@ export default function ArtworkCreator({ onClose }: { onClose: () => void }) {
     if (typeof window === 'undefined') return null;
 
     return createPortal(
-        <div className="fixed inset-0 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4" style={{ zIndex: 100000 }}>
+        <div className="fixed inset-0 flex items-center justify-center bg-black/80 backdrop-blur-sm p-0 md:p-4" style={{ zIndex: 100000 }}>
             {/* Modal Container */}
             <div
-                className="bg-white rounded-sm shadow-2xl flex flex-col relative h-[85vh] overflow-hidden"
-                style={{ width: '1200px', maxWidth: '95vw' }}
+                className="bg-white md:rounded-sm shadow-2xl flex flex-col relative w-full h-full md:h-[85vh] overflow-y-auto md:overflow-hidden md:w-[1200px] md:max-w-[95vw]"
             >
                 {/* Header Actions (Top Corners) */}
-                <div className="absolute top-0 left-0 w-full p-6 flex justify-between items-start z-20 pointer-events-none">
-                    <div /> {/* Spacer for Left Side */}
+                <div className="absolute top-0 right-0 p-6 flex justify-end items-start z-20 pointer-events-none">
                     <button
                         onClick={onClose}
-                        className="pointer-events-auto text-[10px] uppercase tracking-widest text-neutral-400 hover:text-neutral-900 transition-colors"
+                        className="pointer-events-auto text-[10px] uppercase tracking-widest text-neutral-400 hover:text-neutral-900 transition-colors bg-white/80 md:bg-transparent px-3 py-1 rounded-sm"
                     >
                         Cancel
                     </button>
                 </div>
 
-                <form action={handleSave} className="grid grid-cols-1 md:grid-cols-5 flex-1 h-full overflow-hidden relative">
+                <form action={handleSave} className="grid grid-cols-1 md:grid-cols-5 flex-1 h-auto md:h-full overflow-visible md:overflow-hidden relative">
 
                     {/* LEFT COLUMN: Data Form (60%) -> 3 cols */}
-                    <div className="md:col-span-3 flex flex-col h-full border-b md:border-b-0 md:border-r border-neutral-100 bg-white relative z-10 min-w-0">
-                        <div className="flex-1 overflow-y-auto px-10 py-16 md:px-16 custom-scrollbar">
+                    <div className="md:col-span-3 flex flex-col h-auto md:h-full border-b md:border-b-0 md:border-r border-neutral-100 bg-white relative z-10 min-w-0 order-last md:order-first">
+                        <div className="flex-1 overflow-visible md:overflow-y-auto px-6 py-12 md:px-16 md:py-16 custom-scrollbar">
 
                             {/* Header Title inside Form */}
-                            <h2 className="font-serif text-3xl text-neutral-900 mb-12 text-center">Add Archive Record</h2>
+                            <h2 className="font-serif text-3xl text-neutral-900 mb-12 text-center mt-6 md:mt-0">Add Archive Record</h2>
 
                             <div className="space-y-12">
 

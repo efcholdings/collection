@@ -149,10 +149,12 @@ export default function ArtworkEditor({ artwork, onClose, userRole = null }: Art
     } : {
         display: 'flex',
         flexDirection: 'column',
-        width: '95vw',
-        height: '85vh',
-        maxHeight: '85vh',
-        overflow: 'hidden',
+        width: '100vw',
+        height: '100%',
+        minHeight: '100%',
+        overflowY: 'auto',
+        overflowX: 'hidden',
+        backgroundColor: '#ffffff'
     };
 
     // Swapped: Image is LEFT (55%)
@@ -178,11 +180,10 @@ export default function ArtworkEditor({ artwork, onClose, userRole = null }: Art
         paddingLeft: '40px', // MATCHED DETAIL PANEL SPACING
     } : {
         width: '100%',
-        flex: 1,
-        minHeight: 0,
         display: 'flex',
         flexDirection: 'column',
         paddingTop: '24px',
+        height: 'auto',
     };
 
     // Refined Input Padding: pb-2
@@ -322,8 +323,8 @@ export default function ArtworkEditor({ artwork, onClose, userRole = null }: Art
 
                     {/* Scrollable Form Content */}
                     <div
-                        className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-neutral-200 scrollbar-track-transparent px-6 md:px-0 pb-6 md:pb-8"
-                        style={{ overflowY: 'auto', paddingRight: '48px' }} // Standard padding right for scrollbar
+                        className="flex-1 overflow-visible md:overflow-y-auto scrollbar-thin scrollbar-thumb-neutral-200 scrollbar-track-transparent px-6 md:px-0 pb-6 md:pb-8"
+                        style={{ overflowY: isDesktop ? 'auto' : 'visible', paddingRight: isDesktop ? '48px' : '0px' }} // Standard padding right for scrollbar
                     >
                         {/* Core Info - Vertical Rhythm: +48px space (MATCHED DETAIL PANEL) */}
                         <div style={{ marginTop: '48px' }}>
