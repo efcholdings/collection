@@ -164,7 +164,7 @@ export default function ArtworkEditor({ artwork, onClose, userRole = null }: Art
     } : {
         width: '100%',
         position: 'relative',
-        height: '40vh',
+        height: 'auto',
         flexShrink: 0,
         backgroundColor: '#fafafa'
     };
@@ -208,10 +208,10 @@ export default function ArtworkEditor({ artwork, onClose, userRole = null }: Art
 
                 {/* LEFT PANEL: Visuals & Image Input */}
                 <div
-                    className="relative flex flex-col items-center justify-center bg-neutral-50"
+                    className="relative flex flex-col items-center justify-start md:justify-center bg-neutral-50"
                     style={leftPanelStyle}
                 >
-                    <div className="relative w-full h-full max-h-[60vh] flex items-center justify-center p-8 pb-32">
+                    <div className="relative w-full aspect-square md:aspect-auto md:h-full max-h-[300px] md:max-h-[60vh] flex items-center justify-center p-4 md:p-8 md:pb-32 shrink-0">
                         {images[activeImageIndex] && getValidImageUrl(images[activeImageIndex]) ? (
                             <div className="relative w-full h-full">
                                 <Image
@@ -228,7 +228,7 @@ export default function ArtworkEditor({ artwork, onClose, userRole = null }: Art
                     </div>
 
                     {/* Image URL Input - Bottom Overlay (Source Image URL) */}
-                    <div className="absolute bottom-0 left-0 w-full p-4 bg-neutral-50 border-t border-neutral-100 backdrop-blur-sm z-10 flex flex-col items-center">
+                    <div className="relative md:absolute md:bottom-0 md:left-0 w-full p-4 bg-neutral-50 md:border-t md:border-neutral-100 md:backdrop-blur-sm z-10 flex flex-col items-center shrink-0">
 
                         {/* Thumbnails row */}
                         <div className="flex gap-2 mb-3 overflow-x-auto w-full justify-center">
@@ -240,7 +240,7 @@ export default function ArtworkEditor({ artwork, onClose, userRole = null }: Art
                                         e.preventDefault();
                                         setActiveImageIndex(idx);
                                     }}
-                                    className={`relative w-16 h-16 shrink-0 border transition-colors ${idx === activeImageIndex ? 'border-neutral-900 border' : 'border-transparent hover:border-neutral-300'}`}
+                                    className={`relative w-12 h-12 md:w-16 md:h-16 shrink-0 border transition-colors ${idx === activeImageIndex ? 'border-neutral-900 border' : 'border-transparent hover:border-neutral-300'}`}
                                 >
                                     {img && getValidImageUrl(img) ? (
                                         <Image src={getValidImageUrl(img)!} alt={`Thumb ${idx + 1}`} fill className="object-cover" unoptimized />

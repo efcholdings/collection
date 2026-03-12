@@ -226,14 +226,15 @@ export default function ArtworkCreator({ onClose }: { onClose: () => void }) {
                     </div>
 
                     {/* RIGHT COLUMN: Image Visual (40%) -> 2 cols */}
-                    <div className="md:col-span-2 bg-neutral-50 flex flex-col items-center justify-center p-8 border-l border-neutral-100 relative shrink-0 h-[300px] md:h-auto">
+                    <div className="md:col-span-2 bg-neutral-50 flex flex-col items-center justify-start md:justify-center p-6 md:p-8 border-t md:border-t-0 md:border-l border-neutral-100 relative shrink-0">
                         <input type="hidden" name="imagePath" value={images[0]} />
                         <input type="hidden" name="imagePath2" value={images[1]} />
                         <input type="hidden" name="imagePath3" value={images[2]} />
                         <input type="hidden" name="imagePath4" value={images[3]} />
                         <input type="hidden" name="imagePath5" value={images[4]} />
 
-                        <div className="relative w-full h-full max-h-[60vh] shadow-xl bg-white p-4 flex items-center justify-center">
+                        {/* Portrait Aspect Ratio Container */}
+                        <div className="relative w-full aspect-square max-h-[300px] md:max-h-[60vh] shadow-xl bg-white p-4 flex items-center justify-center shrink-0">
                             {images[activeImageIndex] && getValidImageUrl(images[activeImageIndex]) ? (
                                 <Image
                                     src={getValidImageUrl(images[activeImageIndex])!}
@@ -248,13 +249,13 @@ export default function ArtworkCreator({ onClose }: { onClose: () => void }) {
                         </div>
 
                         {/* Thumbnails row */}
-                        <div className="flex gap-2 mt-4 overflow-x-auto pb-2 w-full justify-center">
+                        <div className="flex gap-2 mt-4 overflow-x-auto pb-2 w-full justify-center shrink-0">
                             {images.map((img, idx) => (
                                 <button
                                     key={idx}
                                     type="button"
                                     onClick={() => setActiveImageIndex(idx)}
-                                    className={`relative w-16 h-16 shrink-0 border transition-colors ${idx === activeImageIndex ? 'border-neutral-900 border' : 'border-transparent hover:border-neutral-300'}`}
+                                    className={`relative w-12 h-12 md:w-16 md:h-16 shrink-0 border transition-colors ${idx === activeImageIndex ? 'border-neutral-900 border' : 'border-transparent hover:border-neutral-300'}`}
                                 >
                                     {img && getValidImageUrl(img) ? (
                                         <Image src={getValidImageUrl(img)!} alt={`Thumb ${idx + 1}`} fill className="object-cover" unoptimized />
