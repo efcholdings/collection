@@ -163,15 +163,14 @@ export default function ReportBuilder({ artworks, onClose }: ReportBuilderProps)
 
     return createPortal(
         <div className="fixed inset-0 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4 !z-[2147483600]" style={{ zIndex: 2147483600 }}>
-            {/* Modal Container: Flex Row, 900x600 (Updated), White, Shadow-2xl */}
+            {/* Modal Container: Flex Col on mobile, Row on Desktop, Responsive, White, Shadow-2xl */}
             <div
-                className="bg-white shadow-2xl flex flex-row items-stretch overflow-hidden relative"
-                style={{ zIndex: 1, width: '900px', height: '600px' }}
+                className="bg-white shadow-2xl flex flex-col md:flex-row items-stretch overflow-y-auto md:overflow-hidden relative w-full h-full md:w-[900px] md:h-[600px] md:max-w-[95vw]"
+                style={{ zIndex: 1 }}
             >
-                {/* LEFT PANEL: Configuration (Flex 1, padding-left 10% via style) */}
+                {/* LEFT PANEL: Configuration */}
                 <div
-                    className="flex-1 flex flex-col gap-[30px] border-r border-[#E5E7EB] bg-white h-full relative"
-                    style={{ paddingLeft: '10%', paddingRight: '5%', paddingTop: '5%' }}
+                    className="flex-1 flex flex-col gap-[30px] border-b md:border-b-0 md:border-r border-[#E5E7EB] bg-white h-auto md:h-full relative p-8 md:pl-[10%] md:pr-[5%] md:pt-[5%] shrink-0"
                 >
 
                     {/* Report Configuration Title */}
@@ -243,7 +242,7 @@ export default function ReportBuilder({ artworks, onClose }: ReportBuilderProps)
                     </div>
 
                     {/* BOTTOM GROUP: Field Selection (Border-T, pt-40) */}
-                    <div className="flex-1 flex flex-col border-t border-[#F3F4F6] pt-[40px] overflow-hidden">
+                    <div className="flex-1 flex flex-col border-t border-[#F3F4F6] pt-[40px] overflow-visible md:overflow-hidden">
                         <div className="mb-4">
                             <h3
                                 className="uppercase"
@@ -307,8 +306,8 @@ export default function ReportBuilder({ artworks, onClose }: ReportBuilderProps)
                     </div>
                 </div>
 
-                {/* RIGHT PANEL: Export (Flex 1, bg-#FAFAFA, p-60, center) */}
-                <div className="flex-1 flex flex-col items-center justify-center h-full bg-[#FAFAFA] relative p-[60px]">
+                {/* RIGHT PANEL: Export */}
+                <div className="flex-1 flex flex-col items-center justify-center h-auto md:h-full bg-[#FAFAFA] relative p-12 md:p-[60px] shrink-0">
 
                     <div className="text-center w-full max-w-[320px]">
                         <h3
@@ -367,7 +366,7 @@ export default function ReportBuilder({ artworks, onClose }: ReportBuilderProps)
                                 {({ loading }) => (
                                     <button
                                         disabled={loading}
-                                        className="w-[320px] py-[24px] bg-white border-[1.5px] border-black text-black hover:bg-black hover:text-white transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                                        className="w-full max-w-[320px] py-[24px] bg-white border-[1.5px] border-black text-black hover:bg-black hover:text-white transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
                                         style={{
                                             fontFamily: 'var(--font-inter), sans-serif',
                                             fontSize: '11px',
@@ -414,7 +413,7 @@ function PreviewButton({ artworks, fields, title }: { artworks: Artwork[], field
         <button
             onClick={() => instance.url && window.open(instance.url, '_blank')}
             disabled={instance.loading}
-            className="w-[320px] py-[24px] bg-white border-[1.5px] border-black text-black hover:bg-black hover:text-white transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center mb-[20px]"
+            className="w-full max-w-[320px] py-[24px] bg-white border-[1.5px] border-black text-black hover:bg-black hover:text-white transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center mb-[20px]"
             style={{
                 fontFamily: 'var(--font-inter), sans-serif',
                 fontSize: '11px',
