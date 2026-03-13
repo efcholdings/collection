@@ -160,8 +160,12 @@ export default function GalleryManager({ artworks, totalCount, currentPage = 1, 
                     {/* Secondary Action Bar (Title & Tools) */}
                     <div className="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-6 px-2">
                         <div>
-                            <h1 className="font-serif text-2xl md:text-3xl text-neutral-900 mt-2 md:mt-6">
-                                Collection Management
+                            <h1 className="mt-2 md:mt-6 flex items-center">
+                                <img 
+                                    src="/assets/efc_logo.png" 
+                                    alt="Ella Fontanals Cisneros Collection" 
+                                    className="h-8 md:h-12 w-auto object-contain select-none"
+                                />
                             </h1>
                             <p className="text-neutral-500 text-xs md:text-sm mt-1 md:mt-2 font-light">
                                 Showing {displayArtworks.length} of {displayTotal} Records
