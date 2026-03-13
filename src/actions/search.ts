@@ -105,7 +105,7 @@ export async function searchArtworks(userQuery: string, page: number = 1): Promi
             // Execute Vector Cosine Similarity Map
             console.log("Executing Vector SQL query on Supabase...");
             const rawVectorResults = await prisma.$queryRawUnsafe<any[]>(`
-                SELECT id, title, artist, year, medium, dimensions, category, width, height, "widthCm", "heightCm", "imagePath1"
+                SELECT id, title, artist, year, medium, category, width, height, "widthCm", "heightCm", "imagePath"
                 FROM "Artwork"
                 ${whereSql}
                 ORDER BY embedding <=> $1::vector
