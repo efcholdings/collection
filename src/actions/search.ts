@@ -8,14 +8,16 @@ import { Artwork } from '@prisma/client';
 
 // Define the schema for the AI to extract
 const SearchFiltersSchema = z.object({
-    query: z.string().optional().describe("Text to match against title, artist, or notes (e.g., 'Cuba', 'Red', 'Portrait')"),
-    minYear: z.number().optional().describe("Minimum year (e.g., for 'after 2000')"),
-    maxYear: z.number().optional().describe("Maximum year (e.g., for 'before 2010')"),
-    category: z.string().optional().describe("Category if explicitly mentioned (e.g., 'Painting', 'Sculpture')"),
-    minWidthCm: z.number().optional().describe("Minimum width in centimeters. Convert from inches/feet to cm automatically."),
-    maxWidthCm: z.number().optional().describe("Maximum width in centimeters. Convert from inches/feet to cm automatically."),
-    minHeightCm: z.number().optional().describe("Minimum height in centimeters. Convert from inches/feet to cm automatically."),
-    maxHeightCm: z.number().optional().describe("Maximum height in centimeters. Convert from inches/feet to cm automatically."),
+    keyword: z.string().optional().describe("Only extract key words here (e.g. 'Cuba', 'Red'). DO NOT put your reasoning here. DO NOT put measurements here."),
+    category: z.string().optional().describe("Artwork category if mentioned (e.g., 'Painting', 'Sculpture', 'Photography')."),
+    minYear: z.number().optional().describe("Minimum creation year if mentioned."),
+    maxYear: z.number().optional().describe("Maximum creation year if mentioned."),
+    minWidthCm: z.number().optional().describe("Exact minimum width in cm (1 inch = 2.54 cm)."),
+    maxWidthCm: z.number().optional().describe("Exact maximum width in cm."),
+    minHeightCm: z.number().optional().describe("Exact minimum height in cm."),
+    maxHeightCm: z.number().optional().describe("Exact maximum height in cm."),
+    minSizeCm: z.number().optional().describe("CRITICAL: If the user says 'larger than 20 inches' without specifying width/height, put the converted cm value (50.8) here exactly!"),
+    maxSizeCm: z.number().optional().describe("CRITICAL: If the user says 'under 20 inches' without specifying width/height, put the converted cm value (50.8) here exactly!")
 });
 
 export async function searchArtworks(userQuery: string, page: number = 1): Promise<{ artworks: Artwork[], totalCount: number }> {
@@ -30,20 +32,19 @@ export async function searchArtworks(userQuery: string, page: number = 1): Promi
             model: google('gemini-2.0-flash'), // Available model confirmed via API
             schema: SearchFiltersSchema,
             prompt: `
-      Identify the user's intent from the query: "${userQuery}".
-      
-      Extract:
-      - query: Key descriptive words (e.g. "Red", "Portrait", "Cuba"). IGNORE generic words like "art", "artworks", "images", "show me", "all", "works".
-      - minYear/maxYear: numeric year constraints in standard digits.
-      - category: Only if the user explicitly names a category (e.g. "Painting", "Sculpture", "Abstraction").
-      - Dimensions: Extrapolate width/height constraints into centimeters. "Larger than 3 feet wide" -> minWidthCm: 91.44. "Under 100 cm tall" -> maxHeightCm: 100. 
-      CRITICAL: If a user specifies a generic size constraint like "larger than 20 inches" without saying "wide" or "tall", you MUST map the converted value to BOTH minWidthCm AND minHeightCm to ensure a match.
-      
-      Examples (STRICT JSON OUTPUT):
-      - "abstraction artworks" -> { "category": "Abstraction" }
-      - "red paintings from 1990" -> { "query": "red", "category": "Painting", "minYear": 1990 }
-      - "Cuba larger than 20 inches" -> { "query": "Cuba", "minWidthCm": 50.8, "minHeightCm": 50.8 }
-      `,
+            Extract search intent from: "${userQuery}".
+            
+            Rules:
+            1. keyword: Extract key descriptive words (e.g. "Cuba", "Red"). NEVER include words like "larger", "smaller", "inches", "cm", "feet", "wide", "tall" here!
+            2. Dimensions: Convert measurements to centimeters (1 inch = 2.54 cm). 
+            3. CRITICAL: If a measurement does not specify width or height (e.g. "larger than 20 inches"), YOU MUST put the converted cm value in minSizeCm (if "larger") or maxSizeCm (if "under").
+
+            Examples:
+            - "abstraction artworks" -> { "category": "Abstraction" }
+            - "red paintings from 1990" -> { "keyword": "red", "category": "Painting", "minYear": 1990 }
+            - "Cuba larger than 20 inches" -> { "keyword": "Cuba", "minSizeCm": 50.8 }
+            - "artworks under 100 cm tall" -> { "maxHeightCm": 100 }
+            `,
         });
 
         console.log('AI Interpreted Filters:', filters);
@@ -52,13 +53,13 @@ export async function searchArtworks(userQuery: string, page: number = 1): Promi
         const where: any = {};
 
         // Text Search (Multi-column)
-        if (filters.query) {
+        if (filters.keyword) {
             where.OR = [
-                { title: { contains: filters.query, mode: 'insensitive' } },
-                { artist: { contains: filters.query, mode: 'insensitive' } },
-                { notes: { contains: filters.query, mode: 'insensitive' } },
-                { category: { contains: filters.query, mode: 'insensitive' } },
-                { medium: { contains: filters.query, mode: 'insensitive' } }, 
+                { title: { contains: filters.keyword, mode: 'insensitive' } },
+                { artist: { contains: filters.keyword, mode: 'insensitive' } },
+                { notes: { contains: filters.keyword, mode: 'insensitive' } },
+                { category: { contains: filters.keyword, mode: 'insensitive' } },
+                { medium: { contains: filters.keyword, mode: 'insensitive' } }, 
             ];
         }
 
@@ -78,6 +79,29 @@ export async function searchArtworks(userQuery: string, page: number = 1): Promi
             where.heightCm = {};
             if (filters.minHeightCm) where.heightCm.gte = filters.minHeightCm;
             if (filters.maxHeightCm) where.heightCm.lte = filters.maxHeightCm;
+        }
+
+        // Generic Ambiguous Dimensions
+        if (filters.minSizeCm || filters.maxSizeCm) {
+            const genericOr: any[] = [];
+            
+            if (filters.minSizeCm) {
+                genericOr.push(
+                    { widthCm: { gte: filters.minSizeCm } },
+                    { heightCm: { gte: filters.minSizeCm } }
+                );
+            }
+            if (filters.maxSizeCm) {
+                genericOr.push(
+                    { widthCm: { lte: filters.maxSizeCm } },
+                    { heightCm: { lte: filters.maxSizeCm } }
+                );
+            }
+            
+            where.AND = [
+                ...(where.AND || []),
+                { OR: genericOr }
+            ];
         }
 
         // 3. Fetch Data with Pagination
