@@ -24,17 +24,19 @@ interface GalleryManagerProps {
     categories: string[];
     artists: string[];
     userRole?: string | null;
+    monthlyTokenUsage?: number;
 }
 
 type ViewMode = 'grid' | 'list';
 
-export default function GalleryManager({ artworks, totalCount, currentPage = 1, categories, artists, userRole = null }: GalleryManagerProps) {
+export default function GalleryManager({ artworks, totalCount, currentPage = 1, categories, artists, userRole = null, monthlyTokenUsage = 0 }: GalleryManagerProps) {
     const [selectedArtwork, setSelectedArtwork] = useState<Artwork | null>(null);
     const [editingArtwork, setEditingArtwork] = useState<Artwork | null>(null);
     const [isCreating, setIsCreating] = useState(false); // New state
     const [isReportOpen, setIsReportOpen] = useState(false); // Report Builder State
     const [viewMode, setViewMode] = useState<ViewMode>('grid');
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+    const [currentMonthlyTokens, setCurrentMonthlyTokens] = useState<number>(monthlyTokenUsage);
 
     const isAdmin = userRole === 'ADMIN';
     const canEdit = ['EDITOR', 'MANAGER', 'ADMIN'].includes(userRole || '');
@@ -74,6 +76,11 @@ export default function GalleryManager({ artworks, totalCount, currentPage = 1, 
         setBackendError(null);
         try {
             const { artworks, totalCount, debugError, aiResponse, totalTokensConsumed } = await searchArtworks(query, page);
+            
+            if (totalTokensConsumed) {
+                 setCurrentMonthlyTokens(prev => prev + totalTokensConsumed);
+            }
+
             if (debugError) {
                 setBackendError(debugError);
                 setSearchQuery(query);
@@ -152,6 +159,17 @@ export default function GalleryManager({ artworks, totalCount, currentPage = 1, 
 
                         {/* 2. Admin & Auth Status (Absolute Positioned Top-Right) */}
                         <div className="w-full flex justify-end items-center md:absolute md:top-3 md:right-0 md:w-auto pointer-events-none gap-6">
+                            
+                            {/* Persistent Token Burn Indicator (Current Month) */}
+                            {currentMonthlyTokens > 0 && (
+                                <div className="pointer-events-auto flex items-center gap-1.5 opacity-60 hover:opacity-100 transition-opacity" title="Your total AI token footprint this month">
+                                    <SparklesIcon className="w-3.5 h-3.5 text-indigo-500" />
+                                    <span className="text-[9px] font-sans font-medium tracking-widest text-neutral-500 uppercase">
+                                        {currentMonthlyTokens.toLocaleString()} TOKENS
+                                    </span>
+                                </div>
+                            )}
+
                             {/* System Admin Indicator */}
                             {isAdmin && (
                                 <div className="pointer-events-auto flex items-center gap-2">

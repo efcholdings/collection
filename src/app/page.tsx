@@ -40,6 +40,21 @@ export default async function Home({ searchParams }: PageProps) {
   const session = await auth();
   // @ts-ignore
   const userRole = session?.user?.role || null;
+  // @ts-ignore
+  const userId = session?.user?.id || null;
+
+  let monthlyTokenUsage = 0;
+  if (userId) {
+    const startOfMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+    const tokenAgg = await prisma.tokenLedger.aggregate({
+      where: {
+        userId: userId,
+        createdAt: { gte: startOfMonth }
+      },
+      _sum: { tokens: true }
+    });
+    monthlyTokenUsage = tokenAgg._sum.tokens || 0;
+  }
 
   return (
     <GalleryManager
@@ -49,6 +64,7 @@ export default async function Home({ searchParams }: PageProps) {
       categories={categories}
       artists={artists}
       userRole={userRole}
+      monthlyTokenUsage={monthlyTokenUsage}
     />
   );
 }
