@@ -36,12 +36,12 @@ export async function searchArtworks(userQuery: string, page: number = 1): Promi
       - query: Key descriptive words (e.g. "Red", "Portrait", "Cuba"). IGNORE generic words like "art", "artworks", "images", "show me", "all", "works".
       - minYear/maxYear: numeric year constraints in standard digits.
       - category: Only if the user explicitly names a category (e.g. "Painting", "Sculpture", "Abstraction").
-      - Dimensions: Extrapolate width/height constraints. If a user asks for "larger than 3 feet wide", return minWidthCm: 91.44. If they ask for "under 100 cm tall", return maxHeightCm: 100.
+      - Dimensions: Extrapolate width/height constraints. If a user asks for "larger than 3 feet wide", return minWidthCm: 91.44. If they ask for "under 100 cm tall", return maxHeightCm: 100. If they just say "larger than 20 inches", assume width and return minWidthCm: 50.8.
       
       Examples:
       - "abstraction artworks" -> category: "Abstraction"
       - "red paintings from 1990" -> query: "red", category: "Painting", minYear: 1990
-      - "Cuba larger than 20 inches wide" -> query: "Cuba", minWidthCm: 50.8
+      - "Cuba larger than 20 inches" -> query: "Cuba", minWidthCm: 50.8
       `,
         });
 
@@ -117,14 +117,15 @@ export async function searchArtworks(userQuery: string, page: number = 1): Promi
         }
 
     } catch (error) {
-        console.error("Search failed:", error);
-
-        // Fallback: Smart cleaning if AI fails
+        console.error("===== FATAL ERROR IN AI PRISMA TRANSLATION =====");
+        console.error(error);
+        
+        // Fallback for non-AI generic string search
         const cleanedQuery = userQuery
-            .replace(/show me|all|artworks|images|works|from|about/gi, '')
-            .trim();
-
-        // Fallback Pagination
+            .replace(/["']/g, '') // remove quotes
+            .split(' ')
+            .filter(word => word.length > 2) // only significant words
+            .join(' ');
         const where = {
             OR: [
                 { title: { contains: cleanedQuery } },
