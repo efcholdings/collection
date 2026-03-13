@@ -23,10 +23,11 @@ const SearchFiltersSchema = z.object({
     minHeightCm: z.number().optional().describe("Exact minimum height in cm."),
     maxHeightCm: z.number().optional().describe("Exact maximum height in cm."),
     minSizeCm: z.number().optional().describe("CRITICAL: If the user says 'larger than 20 inches' without specifying width/height, put the converted cm value (50.8) here exactly!"),
-    maxSizeCm: z.number().optional().describe("CRITICAL: If the user says 'under 20 inches' without specifying width/height, put the converted cm value (50.8) here exactly!")
+    maxSizeCm: z.number().optional().describe("CRITICAL: If the user says 'under 20 inches' without specifying width/height, put the converted cm value (50.8) here exactly!"),
+    aiResponse: z.string().optional().describe("Write a quick, friendly, 1-sentence confirmation of what you extracted from the user's prompt (e.g., 'Looking for large Cuban paintings created between 2000 and 2010.'). Make it sound helpful and intelligent.")
 });
 
-export async function searchArtworks(userQuery: string, page: number = 1): Promise<{ artworks: Artwork[], totalCount: number, debugError?: string }> {
+export async function searchArtworks(userQuery: string, page: number = 1): Promise<{ artworks: Artwork[], totalCount: number, debugError?: string, aiResponse?: string }> {
     if (!userQuery.trim()) return { artworks: [], totalCount: 0 };
 
     const ITEMS_PER_PAGE = 50;
@@ -131,7 +132,8 @@ export async function searchArtworks(userQuery: string, page: number = 1): Promi
 
             return {
                 artworks: filtered.slice(skip, skip + ITEMS_PER_PAGE),
-                totalCount: filtered.length
+                totalCount: filtered.length,
+                aiResponse: filters.aiResponse
             };
         } else {
             // Standard DB Pagination
@@ -144,7 +146,7 @@ export async function searchArtworks(userQuery: string, page: number = 1): Promi
                 prisma.artwork.count({ where })
             ]);
 
-            return { artworks, totalCount, debugError: undefined };
+            return { artworks, totalCount, debugError: undefined, aiResponse: filters.aiResponse };
         }
 
     } catch (error: any) {

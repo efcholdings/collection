@@ -12,7 +12,8 @@ import ArtworkCreator from './ArtworkCreator';
 import ArtworkEditor from './ArtworkEditor';
 import { searchArtworks } from '@/actions/search';
 import { logout } from '@/actions/auth';
-import { PrinterIcon, Bars3Icon } from '@heroicons/react/24/outline';
+import { PrinterIcon, Bars3Icon, SparklesIcon } from '@heroicons/react/24/outline';
+import SuggestedSearches from './SuggestedSearches';
 import Image from 'next/image';
 import { getValidImageUrl } from '@/utils/imageUtils';
 import ReportBuilder from './ReportBuilder';
@@ -54,7 +55,7 @@ export default function GalleryManager({ artworks, totalCount, currentPage = 1, 
     }, [artworks, selectedArtwork]);
 
     // Search State
-    const [searchResults, setSearchResults] = useState<{ data: Artwork[], total: number, page: number } | null>(null);
+    const [searchResults, setSearchResults] = useState<{ data: Artwork[], total: number, page: number, aiResponse?: string } | null>(null);
     const [isSearching, setIsSearching] = useState(false);
     const [backendError, setBackendError] = useState<string | null>(null);
 
@@ -73,18 +74,18 @@ export default function GalleryManager({ artworks, totalCount, currentPage = 1, 
         setIsSearching(true);
         setBackendError(null);
         try {
-            const { artworks, totalCount, debugError } = await searchArtworks(query, page);
+            const { artworks, totalCount, debugError, aiResponse } = await searchArtworks(query, page);
             if (debugError) {
                 setBackendError(debugError);
                 setSearchQuery(query);
-                setSearchResults({ data: artworks, total: totalCount, page });
+                setSearchResults({ data: artworks, total: totalCount, page, aiResponse });
                 return;
             }
             // Store query in state or just rely on the input (simplified: we need the query to paginate)
             // For now, let's assume the SearchBar keeps the query or we pass it.
             // Actually, we need to store the query in GalleryManager to support pagination.
             setSearchQuery(query);
-            setSearchResults({ data: artworks, total: totalCount, page });
+            setSearchResults({ data: artworks, total: totalCount, page, aiResponse });
         } catch (e) {
             console.error(e);
             setBackendError("An unexpected client error occurred.");
@@ -144,6 +145,9 @@ export default function GalleryManager({ artworks, totalCount, currentPage = 1, 
                             </button>
                             <div className="flex-1">
                                 <SearchBar onSearch={triggerSearch} isSearching={isSearching} variant="minimal" />
+                                <div className="hidden md:block">
+                                    <SuggestedSearches onSelectSuggestion={triggerSearch} />
+                                </div>
                             </div>
                         </div>
 
@@ -226,6 +230,13 @@ export default function GalleryManager({ artworks, totalCount, currentPage = 1, 
                             <p className="font-bold">Backend AI Processing Error</p>
                             <p>{backendError}</p>
                             <p className="mt-1 opacity-80">The system fell back to a primitive string search. Please check Vercel Environment Variables.</p>
+                        </div>
+                    )}
+
+                    {searchResults?.aiResponse && (
+                        <div className="bg-indigo-50 border border-indigo-100 rounded-md p-3 mb-6 mx-2 text-xs flex items-start gap-3">
+                            <SparklesIcon className="w-4 h-4 text-indigo-500 shrink-0 mt-0.5" />
+                            <p className="text-indigo-900 leading-relaxed font-light">{searchResults.aiResponse}</p>
                         </div>
                     )}
 
