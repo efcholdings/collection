@@ -16,7 +16,7 @@ export default function ArtworkRow({ artwork, onSelect, onEdit, userRole = null 
 
     return (
         <div
-            className="group border-b border-gray-50 bg-white hover:bg-neutral-50 transition-colors flex flex-col md:flex-row md:items-center py-6 md:py-8 px-4 md:px-0 gap-4 md:gap-0"
+            className="relative group border-b border-gray-50 bg-white hover:bg-neutral-50 transition-colors flex flex-col md:flex-row md:items-center py-6 md:py-8 px-4 md:px-0 gap-4 md:gap-0"
         >
             {/* Column 1: Artwork (Thumb + Title + Artist) */}
             <div className="w-full md:w-1/4 flex items-center gap-6 overflow-hidden md:pl-4">
