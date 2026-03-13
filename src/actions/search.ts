@@ -5,6 +5,7 @@ import { generateObject } from 'ai';
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
 import { Artwork } from '@prisma/client';
+import { auth } from '@/auth';
 
 // Strip hidden BOM (\uFEFF) or zero-width spaces that often get copy-pasted into Vercel
 const cleanApiKey = (process.env.GOOGLE_GENERATIVE_AI_API_KEY || '').replace(/[\u200B-\u200D\uFEFF]/g, '').trim();
@@ -27,15 +28,20 @@ const SearchFiltersSchema = z.object({
     aiResponse: z.string().describe("ALWAYS write a quick, friendly, 1-sentence conversational confirmation of what you extracted from the user's prompt (e.g., 'Here are some large pieces created between 2000 and 2010.'). Make it sound helpful and intelligent.")
 });
 
-export async function searchArtworks(userQuery: string, page: number = 1): Promise<{ artworks: Artwork[], totalCount: number, debugError?: string, aiResponse?: string }> {
+export async function searchArtworks(userQuery: string, page: number = 1): Promise<{ artworks: Artwork[], totalCount: number, debugError?: string, aiResponse?: string, totalTokensConsumed?: number }> {
     if (!userQuery.trim()) return { artworks: [], totalCount: 0 };
 
     const ITEMS_PER_PAGE = 50;
     const skip = (page - 1) * ITEMS_PER_PAGE;
 
     try {
+        const session = await auth();
+        // @ts-ignore
+        const userId = session?.user?.id;
+        let totalTokensConsumed = 0;
+
         // 1. Interpret valid filters safely
-        const { object: filters } = await generateObject({
+        const { object: filters, usage } = await generateObject({
             model: google('gemini-2.0-flash'), // Available model confirmed via API
             schema: SearchFiltersSchema,
             prompt: `
@@ -55,6 +61,16 @@ export async function searchArtworks(userQuery: string, page: number = 1): Promi
             `,
         });
 
+        if (usage && usage.totalTokens) {
+            totalTokensConsumed += usage.totalTokens;
+            if (userId) {
+                // Background log to database without blocking
+                prisma.tokenLedger.create({
+                    data: { userId, action: 'KEYWORD_CLASSIFICATION', tokens: usage.totalTokens }
+                }).catch(e => console.error("Token logging failed:", e));
+            }
+        }
+
         console.log('AI Interpreted Filters:', filters);
 
         // 2. Fetch Gemini Embedding for Semantic Vector Search if keyword exists
@@ -72,6 +88,15 @@ export async function searchArtworks(userQuery: string, page: number = 1): Promi
             if (emRes.ok) {
                 const emData = await emRes.json();
                 keywordEmbedding = emData.embedding.values;
+                
+                // Vector Token tracking approximation (1 token ~= 4 chars)
+                const approxTokens = Math.max(2, Math.ceil(filters.keyword.length / 4));
+                totalTokensConsumed += approxTokens;
+                if (userId) {
+                    prisma.tokenLedger.create({
+                        data: { userId, action: 'VECTOR_EMBEDDING', tokens: approxTokens }
+                    }).catch(e => console.error("Token logging failed:", e));
+                }
             } else {
                 console.error("Vector Extraction failed:", await emRes.text());
             }
@@ -162,14 +187,16 @@ export async function searchArtworks(userQuery: string, page: number = 1): Promi
             return {
                 artworks: tempFiltered.slice(skip, skip + ITEMS_PER_PAGE),
                 totalCount: tempFiltered.length,
-                aiResponse: filters.aiResponse
+                aiResponse: filters.aiResponse,
+                totalTokensConsumed
             };
         } else {
             // Already paginated dynamically except for Vector 100 limit, so safely re-slice
             return {
                 artworks: artworks.slice(0, ITEMS_PER_PAGE),
                 totalCount: totalCount,
-                aiResponse: filters.aiResponse
+                aiResponse: filters.aiResponse,
+                totalTokensConsumed
             };
         }
 

@@ -49,11 +49,21 @@ enum Role {
 }
 
 model User {
-  id             String   @id @default(uuid())
-  email          String   @unique
+  id             String        @id @default(uuid())
+  email          String        @unique
   hashedPassword String
   name           String?
-  role           Role     @default(VIEWER)
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  role           Role          @default(VIEWER)
+  tokenUsage     TokenLedger[]
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+}
+
+model TokenLedger {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  action    String   // e.g., 'KEYWORD_CLASSIFICATION', 'VECTOR_EMBEDDING'
+  tokens    Int
+  createdAt DateTime @default(now())
 }

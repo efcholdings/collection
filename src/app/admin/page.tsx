@@ -1,7 +1,9 @@
 import { auth } from '@/auth';
 import { redirect } from 'next/navigation';
 import { getUsers } from '@/actions/users';
+import { getTokenAnalytics } from '@/actions/analytics';
 import UserTable from '@/components/UserTable';
+import TokenAnalyticsTable from '@/components/TokenAnalyticsTable';
 
 export const metadata = {
   title: 'Admin Dashboard | Gallery Management',
@@ -16,6 +18,7 @@ export default async function AdminPage() {
     }
 
     const { users } = await getUsers();
+    const { analytics } = await getTokenAnalytics();
 
     return (
         <div className="min-h-screen bg-white">
@@ -41,6 +44,10 @@ export default async function AdminPage() {
                 </div>
                 
                 <UserTable initialUsers={users || []} />
+
+                <div className="mt-24">
+                     <TokenAnalyticsTable rawData={analytics || []} />
+                </div>
             </main>
         </div>
     );

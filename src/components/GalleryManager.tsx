@@ -54,7 +54,7 @@ export default function GalleryManager({ artworks, totalCount, currentPage = 1, 
     }, [artworks, selectedArtwork]);
 
     // Search State
-    const [searchResults, setSearchResults] = useState<{ data: Artwork[], total: number, page: number, aiResponse?: string } | null>(null);
+    const [searchResults, setSearchResults] = useState<{ data: Artwork[], total: number, page: number, aiResponse?: string, totalTokensConsumed?: number } | null>(null);
     const [isSearching, setIsSearching] = useState(false);
     const [backendError, setBackendError] = useState<string | null>(null);
 
@@ -73,18 +73,18 @@ export default function GalleryManager({ artworks, totalCount, currentPage = 1, 
         setIsSearching(true);
         setBackendError(null);
         try {
-            const { artworks, totalCount, debugError, aiResponse } = await searchArtworks(query, page);
+            const { artworks, totalCount, debugError, aiResponse, totalTokensConsumed } = await searchArtworks(query, page);
             if (debugError) {
                 setBackendError(debugError);
                 setSearchQuery(query);
-                setSearchResults({ data: artworks, total: totalCount, page, aiResponse });
+                setSearchResults({ data: artworks, total: totalCount, page, aiResponse, totalTokensConsumed });
                 return;
             }
             // Store query in state or just rely on the input (simplified: we need the query to paginate)
             // For now, let's assume the SearchBar keeps the query or we pass it.
             // Actually, we need to store the query in GalleryManager to support pagination.
             setSearchQuery(query);
-            setSearchResults({ data: artworks, total: totalCount, page, aiResponse });
+            setSearchResults({ data: artworks, total: totalCount, page, aiResponse, totalTokensConsumed });
         } catch (e) {
             console.error(e);
             setBackendError("An unexpected client error occurred.");
@@ -229,9 +229,17 @@ export default function GalleryManager({ artworks, totalCount, currentPage = 1, 
                     )}
 
                     {searchResults?.aiResponse && (
-                        <div className="bg-indigo-50 border border-indigo-100 rounded-md p-3 mb-6 mx-2 text-xs flex items-start gap-3">
-                            <SparklesIcon className="w-4 h-4 text-indigo-500 shrink-0 mt-0.5" />
-                            <p className="text-indigo-900 leading-relaxed font-light">{searchResults.aiResponse}</p>
+                        <div className="bg-indigo-50 border border-indigo-100 rounded-md p-3 mb-6 mx-2 text-xs flex items-center justify-between gap-3 shadow-sm transition-all">
+                            <div className="flex items-center gap-3">
+                                <SparklesIcon className="w-4 h-4 text-indigo-500 shrink-0" />
+                                <p className="text-indigo-900 leading-relaxed font-light">{searchResults.aiResponse}</p>
+                            </div>
+                            
+                            {searchResults.totalTokensConsumed && (
+                                <span className="bg-indigo-100 text-indigo-700 px-2.5 py-1 rounded-full text-[10px] uppercase font-bold tracking-widest border border-indigo-200 flex-shrink-0 animate-pulse-once">
+                                    ⚡ {searchResults.totalTokensConsumed} Tokens
+                                </span>
+                            )}
                         </div>
                     )}
 
