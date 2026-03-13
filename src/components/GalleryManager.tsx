@@ -147,21 +147,15 @@ export default function GalleryManager({ artworks, totalCount, currentPage = 1, 
                                 </div>
                             )}
 
-                            {/* Sign Out Link */}
+                            {/* Sign Out Link (Universal for all logged-in roles) */}
                             <div className="pointer-events-auto flex items-center">
-                                {!isAdmin ? (
-                                    <a href="/login" className="text-[9px] text-neutral-400 hover:text-neutral-900 transition-colors uppercase tracking-widest font-medium">
-                                        Admin Login
-                                    </a>
-                                ) : (
-                                    <button
-                                        onClick={() => logout()}
-                                        className="text-[9px] text-neutral-400 hover:text-neutral-900 transition-colors uppercase tracking-widest font-medium relative group"
-                                    >
-                                        Sign Out
-                                        <span className="absolute left-0 bottom-0 w-0 h-px bg-neutral-900 transition-all duration-300 group-hover:w-full"></span>
-                                    </button>
-                                )}
+                                <button
+                                    onClick={() => logout()}
+                                    className="text-[9px] text-neutral-400 hover:text-neutral-900 transition-colors uppercase tracking-widest font-medium relative group"
+                                >
+                                    Sign Out
+                                    <span className="absolute left-0 bottom-0 w-0 h-px bg-neutral-900 transition-all duration-300 group-hover:w-full"></span>
+                                </button>
                             </div>
                         </div>
                     </header>
