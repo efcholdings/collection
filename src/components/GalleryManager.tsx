@@ -114,8 +114,17 @@ export default function GalleryManager({ artworks, totalCount, currentPage = 1, 
                     {/* Utility Bar */}
                     <header className="mb-16 flex flex-col items-center gap-6 relative">
 
+                        {/* Logo Centered at Top */}
+                        <div className="w-full flex justify-center mt-8 md:mt-4 mb-2">
+                            <img 
+                                src="/assets/efc_logo.png" 
+                                alt="Ella Fontanals Cisneros Collection" 
+                                className="h-12 md:h-20 w-auto object-contain select-none"
+                            />
+                        </div>
+
                         {/* 1. Global Search & Mobile Menu Toggle */}
-                        <div className="w-full md:w-[75%] my-8 flex items-center gap-4 px-4 md:px-0">
+                        <div className="w-full md:w-[75%] mb-8 flex items-center gap-4 px-4 md:px-0">
                             <button 
                                 className="md:hidden p-2 -ml-2 text-neutral-500 hover:text-neutral-900 transition-colors"
                                 onClick={() => setIsMobileMenuOpen(true)}
@@ -160,13 +169,9 @@ export default function GalleryManager({ artworks, totalCount, currentPage = 1, 
                     {/* Secondary Action Bar (Title & Tools) */}
                     <div className="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-6 px-2">
                         <div>
-                            <h1 className="mt-2 md:mt-6 flex items-center">
-                                <img 
-                                    src="/assets/efc_logo.png" 
-                                    alt="Ella Fontanals Cisneros Collection" 
-                                    className="h-8 md:h-12 w-auto object-contain select-none"
-                                />
-                            </h1>
+                            <h2 className="font-serif text-xl md:text-2xl text-neutral-800 mt-2 md:mt-6">
+                                Collection Archive
+                            </h2>
                             <p className="text-neutral-500 text-xs md:text-sm mt-1 md:mt-2 font-light">
                                 Showing {displayArtworks.length} of {displayTotal} Records
                                 {searchResults && <span className="ml-2 text-indigo-500 cursor-pointer hover:underline" onClick={() => setSearchResults(null)}>(Clear Search)</span>}
