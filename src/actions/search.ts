@@ -36,12 +36,13 @@ export async function searchArtworks(userQuery: string, page: number = 1): Promi
       - query: Key descriptive words (e.g. "Red", "Portrait", "Cuba"). IGNORE generic words like "art", "artworks", "images", "show me", "all", "works".
       - minYear/maxYear: numeric year constraints in standard digits.
       - category: Only if the user explicitly names a category (e.g. "Painting", "Sculpture", "Abstraction").
-      - Dimensions: Extrapolate width/height constraints. If a user asks for "larger than 3 feet wide", return minWidthCm: 91.44. If they ask for "under 100 cm tall", return maxHeightCm: 100. If they just say "larger than 20 inches", assume width and return minWidthCm: 50.8.
+      - Dimensions: Extrapolate width/height constraints into centimeters. "Larger than 3 feet wide" -> minWidthCm: 91.44. "Under 100 cm tall" -> maxHeightCm: 100. 
+      CRITICAL: If a user specifies a generic size constraint like "larger than 20 inches" without saying "wide" or "tall", you MUST map the converted value to BOTH minWidthCm AND minHeightCm to ensure a match.
       
-      Examples:
-      - "abstraction artworks" -> category: "Abstraction"
-      - "red paintings from 1990" -> query: "red", category: "Painting", minYear: 1990
-      - "Cuba larger than 20 inches" -> query: "Cuba", minWidthCm: 50.8
+      Examples (STRICT JSON OUTPUT):
+      - "abstraction artworks" -> { "category": "Abstraction" }
+      - "red paintings from 1990" -> { "query": "red", "category": "Painting", "minYear": 1990 }
+      - "Cuba larger than 20 inches" -> { "query": "Cuba", "minWidthCm": 50.8, "minHeightCm": 50.8 }
       `,
         });
 
