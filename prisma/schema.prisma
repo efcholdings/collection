@@ -22,6 +22,9 @@ model Artwork {
   height      String?
   width       String?
   depth       String?
+  heightCm    Float?   // Standardized numeric height for AI > < filtering
+  widthCm     Float?   // Standardized numeric width for AI > < filtering
+  depthCm     Float?   // Standardized numeric depth for AI > < filtering
   notes       String?
   appraisalValue String? // Placeholder for strict financial data
   purchasePrice  String? // Placeholder for strict financial data

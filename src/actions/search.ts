@@ -12,6 +12,10 @@ const SearchFiltersSchema = z.object({
     minYear: z.number().optional().describe("Minimum year (e.g., for 'after 2000')"),
     maxYear: z.number().optional().describe("Maximum year (e.g., for 'before 2010')"),
     category: z.string().optional().describe("Category if explicitly mentioned (e.g., 'Painting', 'Sculpture')"),
+    minWidthCm: z.number().optional().describe("Minimum width in centimeters. Convert from inches/feet to cm automatically."),
+    maxWidthCm: z.number().optional().describe("Maximum width in centimeters. Convert from inches/feet to cm automatically."),
+    minHeightCm: z.number().optional().describe("Minimum height in centimeters. Convert from inches/feet to cm automatically."),
+    maxHeightCm: z.number().optional().describe("Maximum height in centimeters. Convert from inches/feet to cm automatically."),
 });
 
 export async function searchArtworks(userQuery: string, page: number = 1): Promise<{ artworks: Artwork[], totalCount: number }> {
@@ -22,7 +26,6 @@ export async function searchArtworks(userQuery: string, page: number = 1): Promi
 
     try {
         // 1. Interpret valid filters safely
-        // Since this is a restricted domain, we can be aggressive with structured outputs
         const { object: filters } = await generateObject({
             model: google('gemini-2.0-flash'), // Available model confirmed via API
             schema: SearchFiltersSchema,
@@ -31,13 +34,14 @@ export async function searchArtworks(userQuery: string, page: number = 1): Promi
       
       Extract:
       - query: Key descriptive words (e.g. "Red", "Portrait", "Cuba"). IGNORE generic words like "art", "artworks", "images", "show me", "all", "works".
-      - minYear/maxYear: numeric year constraints.
+      - minYear/maxYear: numeric year constraints in standard digits.
       - category: Only if the user explicitly names a category (e.g. "Painting", "Sculpture", "Abstraction").
+      - Dimensions: Extrapolate dimension constraints based on context. Example: "Larger than 3 feet wide" -> minWidthCm: 91.44 (because 3 feet = 91.44 cm). "Under 100 cm tall" -> maxHeightCm: 100.
       
       Examples:
       - "show me all abstraction artworks" -> category: "Abstraction", query: undefined (ignore "show me all artworks")
       - "red paintings from 1990" -> query: "red", category: "Painting", minYear: 1990
-      - "images from Cuba" -> query: "Cuba" (ignore "images from")
+      - "images from Cuba larger than 20 inches wide" -> query: "Cuba", minWidthCm: 50.8
       `,
         });
 
@@ -49,19 +53,30 @@ export async function searchArtworks(userQuery: string, page: number = 1): Promi
         // Text Search (Multi-column)
         if (filters.query) {
             where.OR = [
-                { title: { contains: filters.query } },
-                { artist: { contains: filters.query } },
-                { notes: { contains: filters.query } },
-                { category: { contains: filters.query } },
-                { medium: { contains: filters.query } }, // Also search medium
+                { title: { contains: filters.query, mode: 'insensitive' } },
+                { artist: { contains: filters.query, mode: 'insensitive' } },
+                { notes: { contains: filters.query, mode: 'insensitive' } },
+                { category: { contains: filters.query, mode: 'insensitive' } },
+                { medium: { contains: filters.query, mode: 'insensitive' } }, 
             ];
         }
 
         // Category (if explicitly extracted)
         if (filters.category) {
-            // Use startsWith to be more specific (e.g. "Abstraction" shouldn't match "Latin American Abstraction")
-            // This aligns better with the user's strict category mental model
-            where.category = { startsWith: filters.category };
+            where.category = { startsWith: filters.category, mode: 'insensitive' };
+        }
+
+        // Dimension Filters (Direct Database Metrics constraint)
+        if (filters.minWidthCm || filters.maxWidthCm) {
+            where.widthCm = {};
+            if (filters.minWidthCm) where.widthCm.gte = filters.minWidthCm;
+            if (filters.maxWidthCm) where.widthCm.lte = filters.maxWidthCm;
+        }
+
+        if (filters.minHeightCm || filters.maxHeightCm) {
+            where.heightCm = {};
+            if (filters.minHeightCm) where.heightCm.gte = filters.minHeightCm;
+            if (filters.maxHeightCm) where.heightCm.lte = filters.maxHeightCm;
         }
 
         // 3. Fetch Data with Pagination
