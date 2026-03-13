@@ -24,7 +24,7 @@ const SearchFiltersSchema = z.object({
     maxHeightCm: z.number().optional().describe("Exact maximum height in cm."),
     minSizeCm: z.number().optional().describe("CRITICAL: If the user says 'larger than 20 inches' without specifying width/height, put the converted cm value (50.8) here exactly!"),
     maxSizeCm: z.number().optional().describe("CRITICAL: If the user says 'under 20 inches' without specifying width/height, put the converted cm value (50.8) here exactly!"),
-    aiResponse: z.string().optional().describe("Write a quick, friendly, 1-sentence confirmation of what you extracted from the user's prompt (e.g., 'Looking for large Cuban paintings created between 2000 and 2010.'). Make it sound helpful and intelligent.")
+    aiResponse: z.string().describe("ALWAYS write a quick, friendly, 1-sentence conversational confirmation of what you extracted from the user's prompt (e.g., 'Here are some large pieces created between 2000 and 2010.'). Make it sound helpful and intelligent.")
 });
 
 export async function searchArtworks(userQuery: string, page: number = 1): Promise<{ artworks: Artwork[], totalCount: number, debugError?: string, aiResponse?: string }> {
@@ -45,82 +45,111 @@ export async function searchArtworks(userQuery: string, page: number = 1): Promi
             1. keyword: Extract key descriptive words (e.g. "Cuba", "Red"). NEVER include words like "larger", "smaller", "inches", "cm", "feet", "wide", "tall" here!
             2. Dimensions: Convert measurements to centimeters (1 inch = 2.54 cm). 
             3. CRITICAL: If a measurement does not specify width or height (e.g. "larger than 20 inches"), YOU MUST put the converted cm value in minSizeCm (if "larger") or maxSizeCm (if "under").
-
+            4. aiResponse: You MUST generate a conversational response to the user summarizing what you understood. Examples: "Here are some red paintings from 1990." or "Looking for abstract works wider than 5 feet."
+            
             Examples:
-            - "abstraction artworks" -> { "category": "Abstraction" }
-            - "red paintings from 1990" -> { "keyword": "red", "category": "Painting", "minYear": 1990 }
-            - "Cuba larger than 20 inches" -> { "keyword": "Cuba", "minSizeCm": 50.8 }
-            - "artworks under 100 cm tall" -> { "maxHeightCm": 100 }
+            - "abstraction artworks" -> { "category": "Abstraction", "aiResponse": "Here are some abstraction pieces from the collection." }
+            - "red paintings from 1990" -> { "keyword": "red", "category": "Painting", "minYear": 1990, "aiResponse": "I found these red paintings created around 1990." }
+            - "Cuba larger than 20 inches" -> { "keyword": "Cuba", "minSizeCm": 50.8, "aiResponse": "Searching for pieces related to Cuba that are larger than 20 inches (50.8cm)." }
+            - "artworks under 100 cm tall" -> { "maxHeightCm": 100, "aiResponse": "Here are artworks strictly under 100 cm in height." }
             `,
         });
 
         console.log('AI Interpreted Filters:', filters);
 
-        // 2. Build Prisma Query
-        const where: any = {};
-
-        // Text Search (Multi-column)
+        // 2. Fetch Gemini Embedding for Semantic Vector Search if keyword exists
+        let keywordEmbedding: number[] | null = null;
         if (filters.keyword) {
-            where.OR = [
-                { title: { contains: filters.keyword, mode: 'insensitive' } },
-                { artist: { contains: filters.keyword, mode: 'insensitive' } },
-                { notes: { contains: filters.keyword, mode: 'insensitive' } },
-                { category: { contains: filters.keyword, mode: 'insensitive' } },
-                { medium: { contains: filters.keyword, mode: 'insensitive' } }, 
-            ];
+            console.log(`Extracting 3072-D Semantic Vectors for keyword: "${filters.keyword}"`);
+            const emRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-001:embedContent?key=${cleanApiKey}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    model: 'models/gemini-embedding-001',
+                    content: { parts: [{ text: filters.keyword }] }
+                })
+            });
+            if (emRes.ok) {
+                const emData = await emRes.json();
+                keywordEmbedding = emData.embedding.values;
+            } else {
+                console.error("Vector Extraction failed:", await emRes.text());
+            }
         }
 
-        // Category (if explicitly extracted)
-        if (filters.category) {
-            where.category = { contains: filters.category, mode: 'insensitive' };
-        }
+        let artworks: any[] = [];
+        let totalCount = 0;
 
-        // Dimension Filters (Direct Database Metrics constraint)
-        if (filters.minWidthCm || filters.maxWidthCm) {
-            where.widthCm = {};
-            if (filters.minWidthCm) where.widthCm.gte = filters.minWidthCm;
-            if (filters.maxWidthCm) where.widthCm.lte = filters.maxWidthCm;
-        }
-
-        if (filters.minHeightCm || filters.maxHeightCm) {
-            where.heightCm = {};
-            if (filters.minHeightCm) where.heightCm.gte = filters.minHeightCm;
-            if (filters.maxHeightCm) where.heightCm.lte = filters.maxHeightCm;
-        }
-
-        // Generic Ambiguous Dimensions
-        if (filters.minSizeCm || filters.maxSizeCm) {
-            const genericOr: any[] = [];
+        // 3. Database Query Execution (Hybrid vs Traditional)
+        if (keywordEmbedding) {
+            // HYBRID VECTOR SEARCH (Prisma Raw SQL for pgvector <=>)
+            const vectorStr = `[${keywordEmbedding.join(',')}]`;
+            
+            // Build raw SQL conditions for dimensions/category
+            const conditions: any[] = [];
+            if (filters.category) conditions.push(`category ILIKE '%${filters.category.replace(/'/g, "''")}%'`);
+            if (filters.minWidthCm) conditions.push(`"widthCm" >= ${filters.minWidthCm}`);
+            if (filters.maxWidthCm) conditions.push(`"widthCm" <= ${filters.maxWidthCm}`);
+            if (filters.minHeightCm) conditions.push(`"heightCm" >= ${filters.minHeightCm}`);
+            if (filters.maxHeightCm) conditions.push(`"heightCm" <= ${filters.maxHeightCm}`);
             
             if (filters.minSizeCm) {
-                genericOr.push(
-                    { widthCm: { gte: filters.minSizeCm } },
-                    { heightCm: { gte: filters.minSizeCm } }
-                );
+                conditions.push(`("widthCm" >= ${filters.minSizeCm} OR "heightCm" >= ${filters.minSizeCm})`);
             }
             if (filters.maxSizeCm) {
-                genericOr.push(
-                    { widthCm: { lte: filters.maxSizeCm } },
-                    { heightCm: { lte: filters.maxSizeCm } }
-                );
+                conditions.push(`("widthCm" <= ${filters.maxSizeCm} OR "heightCm" <= ${filters.maxSizeCm})`);
             }
+
+            const whereSql = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
             
-            where.AND = [
-                ...(where.AND || []),
-                { OR: genericOr }
-            ];
+            // Execute Vector Cosine Similarity Map
+            console.log("Executing Vector SQL query on Supabase...");
+            const rawVectorResults = await prisma.$queryRawUnsafe<any[]>(`
+                SELECT id, title, artist, year, medium, dimensions, category, width, height, "widthCm", "heightCm", "imagePath1"
+                FROM "Artwork"
+                ${whereSql}
+                ORDER BY embedding <=> $1::vector
+                LIMIT 100;
+            `, vectorStr);
+
+            artworks = rawVectorResults;
+            totalCount = rawVectorResults.length;
+        } else {
+            // TRADITIONAL DIMENSIONAL SEARCH (Native Prisma ORM)
+            const where: any = {};
+
+            if (filters.category) {
+                where.category = { contains: filters.category, mode: 'insensitive' };
+            }
+            if (filters.minWidthCm || filters.maxWidthCm) {
+                where.widthCm = {};
+                if (filters.minWidthCm) where.widthCm.gte = filters.minWidthCm;
+                if (filters.maxWidthCm) where.widthCm.lte = filters.maxWidthCm;
+            }
+            if (filters.minHeightCm || filters.maxHeightCm) {
+                where.heightCm = {};
+                if (filters.minHeightCm) where.heightCm.gte = filters.minHeightCm;
+                if (filters.maxHeightCm) where.heightCm.lte = filters.maxHeightCm;
+            }
+            if (filters.minSizeCm || filters.maxSizeCm) {
+                const genericOr: any[] = [];
+                if (filters.minSizeCm) genericOr.push({ widthCm: { gte: filters.minSizeCm } }, { heightCm: { gte: filters.minSizeCm } });
+                if (filters.maxSizeCm) genericOr.push({ widthCm: { lte: filters.maxSizeCm } }, { heightCm: { lte: filters.maxSizeCm } });
+                where.AND = [ ...(where.AND || []), { OR: genericOr } ];
+            }
+
+            const [traditionalArtworks, tCount] = await prisma.$transaction([
+                prisma.artwork.findMany({ where, skip, take: ITEMS_PER_PAGE }),
+                prisma.artwork.count({ where })
+            ]);
+            
+            artworks = traditionalArtworks;
+            totalCount = tCount;
         }
 
-        // 3. Fetch Data with Pagination
-        // Note: For complex post-processing (Year filtering), strict DB-side pagination is hard.
-        // If year filters are present, we fetch MORE candidates and filter in memory.
-        // Otherwise, we paginate directly on DB.
-
+        // 4. Memory Pagination & Advanced Filter Sweeps (Year parsing)
         if (filters.minYear || filters.maxYear) {
-            // Complex Filter Path: Fetch candidates, filter, then slice
-            const candidates = await prisma.artwork.findMany({ where, take: 500 }); // Reasonable limit for in-memory processing
-
-            const filtered = candidates.filter((art: Artwork) => {
+            const tempFiltered = artworks.filter((art: any) => {
                 if (!art.year) return false;
                 const match = art.year.match(/\d{4}/);
                 if (!match) return false;
@@ -129,24 +158,19 @@ export async function searchArtworks(userQuery: string, page: number = 1): Promi
                 if (filters.maxYear && yearNum > filters.maxYear) return false;
                 return true;
             });
-
+            
             return {
-                artworks: filtered.slice(skip, skip + ITEMS_PER_PAGE),
-                totalCount: filtered.length,
+                artworks: tempFiltered.slice(skip, skip + ITEMS_PER_PAGE),
+                totalCount: tempFiltered.length,
                 aiResponse: filters.aiResponse
             };
         } else {
-            // Standard DB Pagination
-            const [artworks, totalCount] = await prisma.$transaction([
-                prisma.artwork.findMany({
-                    where,
-                    skip,
-                    take: ITEMS_PER_PAGE,
-                }),
-                prisma.artwork.count({ where })
-            ]);
-
-            return { artworks, totalCount, debugError: undefined, aiResponse: filters.aiResponse };
+            // Already paginated dynamically except for Vector 100 limit, so safely re-slice
+            return {
+                artworks: artworks.slice(0, ITEMS_PER_PAGE),
+                totalCount: totalCount,
+                aiResponse: filters.aiResponse
+            };
         }
 
     } catch (error: any) {

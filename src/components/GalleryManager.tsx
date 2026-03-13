@@ -5,7 +5,6 @@ import { useState, useEffect } from 'react';
 import ArtworkRow from './ArtworkRow';
 import ArtworkDetailPanel from './ArtworkDetailPanel';
 import Sidebar from './Sidebar';
-import QuickFilters from './QuickFilters';
 import SearchBar from './SearchBar';
 import PaginationControls from './PaginationControls';
 import ArtworkCreator from './ArtworkCreator';
@@ -219,10 +218,6 @@ export default function GalleryManager({ artworks, totalCount, currentPage = 1, 
                                 Table
                             </HoverButton>
                         </div>
-                    </div>
-
-                    <div className="px-2 mb-6">
-                        <QuickFilters />
                     </div>
 
                     {backendError && (

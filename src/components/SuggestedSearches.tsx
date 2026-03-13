@@ -4,14 +4,16 @@ import { SparklesIcon } from '@heroicons/react/24/outline';
 import { useState, useEffect } from 'react';
 
 const ALL_SUGGESTIONS = [
-    "Large Cuban artworks",
-    "Paintings under 100 cm tall",
+    "Large vibrant Cuban paintings",
+    "Peaceful blue ocean scenes",
+    "Dark moody photography",
     "Sculptures from the 1990s",
-    "Photography larger than 20 inches",
     "Abstract art created before 2000",
-    "Small black and white photos",
-    "Minimalist pieces wider than 5 feet",
-    "Recent mixed media works",
+    "Small black and white pieces",
+    "Minimalist works wider than 5 feet",
+    "Warm, colorful mixed media",
+    "Intense geometric patterns",
+    "Portraits under 100 cm tall",
     "Artworks created in 2015"
 ];
 
