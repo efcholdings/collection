@@ -56,6 +56,7 @@ export default function GalleryManager({ artworks, totalCount, currentPage = 1, 
     // Search State
     const [searchResults, setSearchResults] = useState<{ data: Artwork[], total: number, page: number } | null>(null);
     const [isSearching, setIsSearching] = useState(false);
+    const [backendError, setBackendError] = useState<string | null>(null);
 
     // Derived state: Show search results if they exist, otherwise show all artworks
     const displayArtworks = searchResults ? searchResults.data : artworks;
@@ -65,12 +66,20 @@ export default function GalleryManager({ artworks, totalCount, currentPage = 1, 
     const handleSearch = async (query: string, page: number = 1) => {
         if (!query.trim()) {
             setSearchResults(null);
+            setBackendError(null);
             return;
         }
 
         setIsSearching(true);
+        setBackendError(null);
         try {
-            const { artworks, totalCount } = await searchArtworks(query, page);
+            const { artworks, totalCount, debugError } = await searchArtworks(query, page);
+            if (debugError) {
+                setBackendError(debugError);
+                setSearchQuery(query);
+                setSearchResults({ data: artworks, total: totalCount, page });
+                return;
+            }
             // Store query in state or just rely on the input (simplified: we need the query to paginate)
             // For now, let's assume the SearchBar keeps the query or we pass it.
             // Actually, we need to store the query in GalleryManager to support pagination.
@@ -78,6 +87,7 @@ export default function GalleryManager({ artworks, totalCount, currentPage = 1, 
             setSearchResults({ data: artworks, total: totalCount, page });
         } catch (e) {
             console.error(e);
+            setBackendError("An unexpected client error occurred.");
         } finally {
             setIsSearching(false);
         }
@@ -210,6 +220,14 @@ export default function GalleryManager({ artworks, totalCount, currentPage = 1, 
                     <div className="px-2 mb-6">
                         <QuickFilters />
                     </div>
+
+                    {backendError && (
+                        <div className="bg-red-50 border-l-4 border-red-500 text-red-700 p-4 mb-6 mx-2 text-xs">
+                            <p className="font-bold">Backend AI Processing Error</p>
+                            <p>{backendError}</p>
+                            <p className="mt-1 opacity-80">The system fell back to a primitive string search. Please check Vercel Environment Variables.</p>
+                        </div>
+                    )}
 
                     <div className="w-full transition-all duration-300 px-2 lg:px-0">
                         {/* Content Grid/List */}

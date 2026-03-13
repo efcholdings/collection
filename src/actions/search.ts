@@ -20,7 +20,7 @@ const SearchFiltersSchema = z.object({
     maxSizeCm: z.number().optional().describe("CRITICAL: If the user says 'under 20 inches' without specifying width/height, put the converted cm value (50.8) here exactly!")
 });
 
-export async function searchArtworks(userQuery: string, page: number = 1): Promise<{ artworks: Artwork[], totalCount: number }> {
+export async function searchArtworks(userQuery: string, page: number = 1): Promise<{ artworks: Artwork[], totalCount: number, debugError?: string }> {
     if (!userQuery.trim()) return { artworks: [], totalCount: 0 };
 
     const ITEMS_PER_PAGE = 50;
@@ -138,10 +138,10 @@ export async function searchArtworks(userQuery: string, page: number = 1): Promi
                 prisma.artwork.count({ where })
             ]);
 
-            return { artworks, totalCount };
+            return { artworks, totalCount, debugError: undefined };
         }
 
-    } catch (error) {
+    } catch (error: any) {
         console.error("===== FATAL ERROR IN AI PRISMA TRANSLATION =====");
         console.error(error);
         
@@ -169,6 +169,6 @@ export async function searchArtworks(userQuery: string, page: number = 1): Promi
             prisma.artwork.count({ where })
         ]);
 
-        return { artworks, totalCount };
+        return { artworks, totalCount, debugError: error.message || String(error) };
     }
 }
