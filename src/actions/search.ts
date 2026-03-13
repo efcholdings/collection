@@ -36,12 +36,12 @@ export async function searchArtworks(userQuery: string, page: number = 1): Promi
       - query: Key descriptive words (e.g. "Red", "Portrait", "Cuba"). IGNORE generic words like "art", "artworks", "images", "show me", "all", "works".
       - minYear/maxYear: numeric year constraints in standard digits.
       - category: Only if the user explicitly names a category (e.g. "Painting", "Sculpture", "Abstraction").
-      - Dimensions: Extrapolate dimension constraints based on context. Example: "Larger than 3 feet wide" -> minWidthCm: 91.44 (because 3 feet = 91.44 cm). "Under 100 cm tall" -> maxHeightCm: 100.
+      - Dimensions: Extrapolate width/height constraints. If a user asks for "larger than 3 feet wide", return minWidthCm: 91.44. If they ask for "under 100 cm tall", return maxHeightCm: 100.
       
       Examples:
-      - "show me all abstraction artworks" -> category: "Abstraction", query: undefined (ignore "show me all artworks")
+      - "abstraction artworks" -> category: "Abstraction"
       - "red paintings from 1990" -> query: "red", category: "Painting", minYear: 1990
-      - "images from Cuba larger than 20 inches wide" -> query: "Cuba", minWidthCm: 50.8
+      - "Cuba larger than 20 inches wide" -> query: "Cuba", minWidthCm: 50.8
       `,
         });
 
@@ -63,7 +63,7 @@ export async function searchArtworks(userQuery: string, page: number = 1): Promi
 
         // Category (if explicitly extracted)
         if (filters.category) {
-            where.category = { startsWith: filters.category, mode: 'insensitive' };
+            where.category = { contains: filters.category, mode: 'insensitive' };
         }
 
         // Dimension Filters (Direct Database Metrics constraint)
