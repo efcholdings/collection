@@ -195,7 +195,7 @@ export default function GalleryManager({ artworks, totalCount, currentPage = 1, 
                     <div className="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-6 px-2">
                         <div>
                             <h2 className="font-serif text-xl md:text-2xl text-neutral-800 mt-2 md:mt-6">
-                                Collection Archive
+                                EFC Collection Artworks
                             </h2>
                             <p className="text-neutral-500 text-xs md:text-sm mt-1 md:mt-2 font-light">
                                 Showing {displayArtworks.length} of {displayTotal} Records

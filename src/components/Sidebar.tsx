@@ -54,7 +54,7 @@ export default function Sidebar({ categories, artists, isOpen = false, onClose }
                     <XMarkIcon className="w-6 h-6" />
                 </button>
 
-                <h2 className="font-serif text-xl font-bold mb-8 tracking-tight pr-6">Art Collection</h2>
+                <h2 className="font-serif text-xl font-bold mb-8 tracking-tight pr-6">The EFC Collection</h2>
 
             <div className="space-y-8">
                 <div>
