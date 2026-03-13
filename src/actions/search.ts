@@ -1,10 +1,16 @@
 'use server';
 
-import { google } from '@ai-sdk/google';
+import { createGoogleGenerativeAI } from '@ai-sdk/google';
 import { generateObject } from 'ai';
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
 import { Artwork } from '@prisma/client';
+
+// Strip hidden BOM (\uFEFF) or zero-width spaces that often get copy-pasted into Vercel
+const cleanApiKey = (process.env.GOOGLE_GENERATIVE_AI_API_KEY || '').replace(/[\u200B-\u200D\uFEFF]/g, '').trim();
+const google = createGoogleGenerativeAI({
+  apiKey: cleanApiKey,
+});
 
 // Define the schema for the AI to extract
 const SearchFiltersSchema = z.object({
