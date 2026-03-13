@@ -1,13 +1,18 @@
 'use client';
 
 import { SparklesIcon } from '@heroicons/react/24/outline';
+import { useState, useEffect } from 'react';
 
-const SUGGESTIONS = [
+const ALL_SUGGESTIONS = [
     "Large Cuban artworks",
     "Paintings under 100 cm tall",
     "Sculptures from the 1990s",
     "Photography larger than 20 inches",
-    "Abstract art created before 2000"
+    "Abstract art created before 2000",
+    "Small black and white photos",
+    "Minimalist pieces wider than 5 feet",
+    "Recent mixed media works",
+    "Artworks created in 2015"
 ];
 
 interface SuggestedSearchesProps {
@@ -15,19 +20,33 @@ interface SuggestedSearchesProps {
 }
 
 export default function SuggestedSearches({ onSelectSuggestion }: SuggestedSearchesProps) {
+    const [suggestions, setSuggestions] = useState<string[]>([]);
+
+    useEffect(() => {
+        // Shuffle and pick 4 random suggestions on client mount to avoid NextJS hydration mismatch
+        const shuffled = [...ALL_SUGGESTIONS].sort(() => 0.5 - Math.random());
+        setSuggestions(shuffled.slice(0, 4));
+    }, []);
+
+    // Prevent rendering until mounted to avoid flicker
+    if (suggestions.length === 0) return (
+        // Render invisible placeholder to prevent layout shift
+        <div className="w-full mt-2 h-[30px]" />
+    );
+
     return (
-        <div className="w-full mt-2 flex flex-col md:flex-row items-start md:items-center gap-2 px-2 md:px-0 opacity-80 relative z-0">
-            <div className="flex items-center gap-1.5 text-[9px] uppercase tracking-widest text-neutral-400 font-medium shrink-0">
-                <SparklesIcon className="w-3.5 h-3.5 text-indigo-400" />
-                <span>Try asking rules:</span>
+        <div className="w-full mt-2 flex flex-col md:flex-row items-center justify-center gap-3 px-2 md:px-0 opacity-80 relative z-0">
+            <div className="flex items-center justify-center gap-1.5 text-[9px] uppercase tracking-widest text-neutral-400 font-medium shrink-0">
+                <SparklesIcon className="w-3 h-3 text-indigo-400" />
+                <span>Try asking:</span>
             </div>
             
-            <div className="flex overflow-x-auto hide-scrollbar gap-2 pb-2 md:pb-0 w-full" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
-                {SUGGESTIONS.map((suggestion, idx) => (
+            <div className="flex flex-wrap justify-center overflow-x-auto hide-scrollbar gap-2 pb-2 md:pb-0" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+                {suggestions.map((suggestion, idx) => (
                     <button
                         key={idx}
                         onClick={() => onSelectSuggestion(suggestion)}
-                        className="whitespace-nowrap rounded-full bg-neutral-100/80 hover:bg-neutral-200/80 text-neutral-600 px-3 py-1.5 text-[10px] sm:text-xs font-light transition-colors border border-transparent hover:border-neutral-300"
+                        className="whitespace-nowrap rounded-full bg-neutral-100/80 hover:bg-neutral-200/80 text-neutral-600 px-3 py-1.5 text-[10px] font-light transition-all duration-300 border border-transparent hover:border-neutral-300 transform active:scale-95"
                     >
                         "{suggestion}"
                     </button>
