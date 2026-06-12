@@ -261,7 +261,15 @@ export default function GalleryManager({ artworks, totalCount, currentPage = 1, 
                         </div>
                     )}
 
-                    <div className="w-full transition-all duration-300 px-2 lg:px-0">
+                    <div className="w-full transition-all duration-300 px-2 lg:px-0 relative">
+                        {isSearching && (
+                            <div className="absolute inset-0 z-50 bg-white/70 backdrop-blur-[2px] flex flex-col items-center justify-center min-h-[300px]">
+                                <div className="flex flex-col items-center gap-3 bg-white p-6 rounded-md shadow-sm border border-neutral-100">
+                                    <div className="w-8 h-8 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
+                                    <p className="text-xs uppercase tracking-widest text-neutral-500 font-sans font-light animate-pulse">Searching the collection...</p>
+                                </div>
+                            </div>
+                        )}
                         {/* Content Grid/List */}
                         {viewMode === 'list' ? (
                             <div className="w-full">

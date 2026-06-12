@@ -66,7 +66,7 @@ export async function searchArtworks(userQuery: string, page: number = 1): Promi
             totalTokensConsumed += usage.totalTokens;
             if (userId) {
                 // Background log to database without blocking
-                prisma.tokenLedger.create({
+                await prisma.tokenLedger.create({
                     data: { userId, action: 'KEYWORD_CLASSIFICATION', tokens: usage.totalTokens }
                 }).catch(e => console.error("Token logging failed:", e));
             }
@@ -94,7 +94,7 @@ export async function searchArtworks(userQuery: string, page: number = 1): Promi
                 const approxTokens = Math.max(2, Math.ceil(filters.keyword.length / 4));
                 totalTokensConsumed += approxTokens;
                 if (userId) {
-                    prisma.tokenLedger.create({
+                    await prisma.tokenLedger.create({
                         data: { userId, action: 'VECTOR_EMBEDDING', tokens: approxTokens }
                     }).catch(e => console.error("Token logging failed:", e));
                 }
