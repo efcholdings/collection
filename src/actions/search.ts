@@ -25,7 +25,7 @@ const SearchFiltersSchema = z.object({
     maxHeightCm: z.number().optional().describe("Exact maximum height in cm."),
     minSizeCm: z.number().optional().describe("CRITICAL: If the user says 'larger than 20 inches' without specifying width/height, put the converted cm value (50.8) here exactly!"),
     maxSizeCm: z.number().optional().describe("CRITICAL: If the user says 'under 20 inches' without specifying width/height, put the converted cm value (50.8) here exactly!"),
-    aiResponse: z.string().describe("ALWAYS write a quick, friendly, 1-sentence conversational confirmation of what you extracted from the user's prompt (e.g., 'Here are some large pieces created between 2000 and 2010.'). Make it sound helpful and intelligent.")
+    aiResponse: z.string().optional().describe("ALWAYS write a quick, friendly, 1-sentence conversational confirmation of what you extracted from the user's prompt (e.g., 'Here are some large pieces created between 2000 and 2010.'). Make it sound helpful and intelligent.")
 });
 
 export async function searchArtworks(userQuery: string, page: number = 1): Promise<{ artworks: Artwork[], totalCount: number, debugError?: string, aiResponse?: string, totalTokensConsumed?: number }> {
@@ -44,6 +44,7 @@ export async function searchArtworks(userQuery: string, page: number = 1): Promi
         const { object: filters, usage } = await generateObject({
             model: google('gemini-3.5-flash'), // Available model confirmed via API
             schema: SearchFiltersSchema,
+            temperature: 0,
             prompt: `
             Extract search intent from: "${userQuery}".
             
@@ -187,7 +188,7 @@ export async function searchArtworks(userQuery: string, page: number = 1): Promi
             return {
                 artworks: tempFiltered.slice(skip, skip + ITEMS_PER_PAGE),
                 totalCount: tempFiltered.length,
-                aiResponse: filters.aiResponse,
+                aiResponse: filters.aiResponse || "Here are your search results.",
                 totalTokensConsumed
             };
         } else {
@@ -195,7 +196,7 @@ export async function searchArtworks(userQuery: string, page: number = 1): Promi
             return {
                 artworks: artworks.slice(0, ITEMS_PER_PAGE),
                 totalCount: totalCount,
-                aiResponse: filters.aiResponse,
+                aiResponse: filters.aiResponse || "Here are your search results.",
                 totalTokensConsumed
             };
         }
