@@ -11,7 +11,7 @@ const Schema = z.object({
 
 async function test(query: string) {
     const { object } = await generateObject({
-        model: google('gemini-2.0-flash'),
+        model: google('gemini-3.5-flash'),
         schema: Schema,
         prompt: `Parse: "${query}". Example: "Cuba over 20 inches" -> { "keyword": "Cuba", "minSizeCm": 50.8 }`,
     });

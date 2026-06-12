@@ -42,7 +42,7 @@ export async function searchArtworks(userQuery: string, page: number = 1): Promi
 
         // 1. Interpret valid filters safely
         const { object: filters, usage } = await generateObject({
-            model: google('gemini-2.0-flash'), // Available model confirmed via API
+            model: google('gemini-3.5-flash'), // Available model confirmed via API
             schema: SearchFiltersSchema,
             prompt: `
             Extract search intent from: "${userQuery}".

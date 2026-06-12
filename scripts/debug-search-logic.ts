@@ -18,7 +18,7 @@ async function main() {
 
     try {
         const result = await generateObject({
-            model: google('gemini-2.0-flash'),
+            model: google('gemini-3.5-flash'),
             schema: SearchFiltersSchema,
             prompt: `
       Identify the user's intent from the query: "${userQuery}".
