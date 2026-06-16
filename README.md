@@ -1,3 +1,9 @@
+Hello!
+
+I wrote this web based app to manage a large private art collection and to replace a filemaker based app. It is still a work in progress. You will need an account on Supabase and Vercel to run it in production.
+
+
+
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
 ## Getting Started
